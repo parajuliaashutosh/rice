@@ -1,0 +1,8 @@
+# ~/.zshrc.local — machine-specific config. NOT tracked by rice.
+#
+# Sourced at the end of ~/.zshrc, so anything here overrides the repo config.
+# Put per-laptop paths, work-only settings, tokens, and experiments here.
+
+# export RICE_DIR="$HOME/code/rice"
+# export OPENAI_API_KEY="..."
+# alias vpn='sudo wg-quick up home'

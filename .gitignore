@@ -1,0 +1,6 @@
+# never commit machine-local or secret material
+.zshrc.local
+*.local
+*.bak
+*.swp
+.DS_Store
