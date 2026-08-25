@@ -4,7 +4,6 @@
 set -euo pipefail
 
 RICE_DIR="${RICE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
-BACKUP_DIR="${BACKUP_DIR:-$HOME/.rice-backup/$(date +%Y%m%d-%H%M%S)}"
 DRY_RUN="${DRY_RUN:-0}"
 
 # ── output ───────────────────────────────────────────────────────────────────
@@ -31,6 +30,21 @@ run() {
 }
 
 have() { command -v "$1" >/dev/null 2>&1; }
+
+# confirm <prompt> — interactive y/N prompt; defaults to No (non-destructive)
+# when there's no tty to ask.
+confirm() {
+  local prompt="$1" reply
+  if [ ! -t 0 ]; then
+    warn "$prompt [non-interactive, defaulting to No]"
+    return 1
+  fi
+  read -r -p "$prompt [y/N] " reply
+  case "$reply" in
+    y|Y|yes|YES) return 0 ;;
+    *) return 1 ;;
+  esac
+}
 
 # ── OS / package manager ─────────────────────────────────────────────────────
 detect_os() {
@@ -93,18 +107,18 @@ pkg_is_installed() {
   esac
 }
 
-# ── linking ──────────────────────────────────────────────────────────────────
-backup() {
-  local target="$1"
-  [ -e "$target" ] || [ -L "$target" ] || return 0
-  local rel="${target#"$HOME"/}"
-  local dest="$BACKUP_DIR/$rel"
-  run mkdir -p "$(dirname "$dest")"
-  run mv "$target" "$dest"
-  warn "backed up $target -> $dest"
+# ── linking (via GNU Stow) ───────────────────────────────────────────────────
+ensure_stow() {
+  have stow && return 0
+  if [ "${SKIP_DEPS:-0}" = "1" ]; then
+    die "stow is required to link dotfiles; install it or drop --no-deps"
+  fi
+  info "installing stow (required to link dotfiles)"
+  pkg_install stow
 }
 
-# link_file <source> <target>
+# link_file <source> <target> — symlink one file. Prompts before clobbering
+# anything already there; declining leaves it untouched. No backups are made.
 link_file() {
   local src="$1" dst="$2"
   [ -e "$src" ] || die "missing source: $src"
@@ -113,22 +127,98 @@ link_file() {
     skip "$dst (already linked)"
     return 0
   fi
-  backup "$dst"
+
+  if [ -e "$dst" ] || [ -L "$dst" ]; then
+    if [ "$DRY_RUN" = "1" ]; then
+      warn "$dst already exists — would prompt to overwrite"
+      return 0
+    fi
+    if ! confirm "$dst already exists. Overwrite it (no backup)?"; then
+      skip "leaving $dst untouched"
+      return 0
+    fi
+    run rm -rf "$dst"
+  fi
+
   run mkdir -p "$(dirname "$dst")"
   run ln -sfn "$src" "$dst"
   ok "$dst -> $src"
 }
 
-# link_tree <module-home-dir> — mirrors the tree into $HOME, linking leaf files.
-# Directories are created for real so unmanaged files can live beside managed ones.
+# moves any files still sitting in hide_dir back into root at their original
+# relative path (normal cleanup, or recovery after a crashed run), then
+# removes hide_dir.
+_rice_restore_hidden() {
+  local root="$1" hide_dir="$2" f rel
+  [ -d "$hide_dir" ] || return 0
+  while IFS= read -r -d '' f; do
+    rel="${f#"$hide_dir"/}"
+    mkdir -p "$(dirname "$root/$rel")"
+    mv "$f" "$root/$rel"
+  done < <(find "$hide_dir" -type f -print0 2>/dev/null)
+  rm -rf "$hide_dir"
+}
+
+# extracts the conflicting target path from one line of `stow -n` output,
+# across the several message shapes Stow.pm can produce. Echoes nothing if
+# the line isn't a conflict line.
+_rice_stow_conflict_path() {
+  local line="$1"
+  if [[ "$line" =~ existing\ target\ is\ not\ owned\ by\ stow:\ (.+)$ ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+  elif [[ "$line" =~ existing\ target\ is\ stowed\ to\ a\ different\ package:\ (.+)\ =\> ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+  elif [[ "$line" =~ cannot\ stow\ .*\ over\ existing\ directory\ target\ (.+)$ ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+  elif [[ "$line" =~ cannot\ stow\ .*\ over\ existing\ target\ (.+)\ since\  ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+  fi
+}
+
+# link_tree <module-home-dir> — stows the tree into $HOME with GNU Stow
+# (module-home-dir must be named "home" inside its module, e.g. modules/zsh/home).
+# Any real file/dir already at a target path triggers a per-file prompt;
+# declining leaves that one file unmanaged and unlinked. No backups are made.
 link_tree() {
   local root="$1"
   [ -d "$root" ] || return 0
-  local f rel
-  while IFS= read -r -d '' f; do
-    rel="${f#"$root"/}"
-    link_file "$f" "$HOME/$rel"
-  done < <(find "$root" -type f -print0)
+  ensure_stow
+
+  local stow_dir pkg
+  stow_dir="$(cd "$root/.." && pwd)"
+  pkg="$(basename "$root")"
+
+  # Skipped files are moved out of the package tree entirely (not just
+  # renamed in place) so Stow can't find and link them under a new name.
+  local hide_dir
+  hide_dir="$(mktemp -d "${TMPDIR:-/tmp}/rice-hide.XXXXXX")"
+  trap "_rice_restore_hidden '$root' '$hide_dir'" RETURN EXIT
+
+  local out line rel
+  out="$(stow -n -d "$stow_dir" -t "$HOME" "$pkg" 2>&1 >/dev/null || true)"
+  while IFS= read -r line; do
+    rel="$(_rice_stow_conflict_path "$line")"
+    [ -n "$rel" ] || continue
+    local target="$HOME/$rel" src="$root/$rel"
+    if [ "$DRY_RUN" = "1" ]; then
+      warn "$target already exists — would prompt to overwrite"
+      continue
+    fi
+    if confirm "$target already exists and isn't managed by stow. Overwrite it (no backup)?"; then
+      run rm -rf "$target"
+    else
+      skip "leaving $target untouched (not linking $rel)"
+      mkdir -p "$(dirname "$hide_dir/$rel")"
+      mv "$src" "$hide_dir/$rel"
+    fi
+  done <<< "$out"
+
+  if [ "$DRY_RUN" = "1" ]; then
+    skip "would run: stow -d $stow_dir -t $HOME $pkg"
+  else
+    run stow -d "$stow_dir" -t "$HOME" "$pkg"
+    ok "linked $pkg -> $HOME"
+  fi
 }
 
 # clone_or_update <repo-url> <dest> [--depth N]

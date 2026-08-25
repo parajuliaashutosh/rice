@@ -11,8 +11,10 @@ exec zsh
 ## What it does
 
 `install.sh` walks `modules/`, and for each module installs its dependencies
-and symlinks its config into `$HOME`. Anything it would overwrite is moved to
-`~/.rice-backup/<timestamp>/` first. Re-running it is safe — every step is
+and symlinks its config into `$HOME` using [GNU Stow](https://www.gnu.org/software/stow/).
+If a real file already sits where a symlink needs to go, it asks before
+touching it — decline and that one file is left alone, unmanaged; accept and
+it's overwritten with no backup. Re-running it is safe — every step is
 idempotent.
 
 ```sh

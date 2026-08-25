@@ -72,5 +72,4 @@ if [ ${#failed[@]} -gt 0 ]; then
   err "failed: ${failed[*]}"
   exit 1
 fi
-[ -d "$BACKUP_DIR" ] && info "replaced files were backed up to $BACKUP_DIR"
 ok "all done — open a new shell (or run: exec zsh)"

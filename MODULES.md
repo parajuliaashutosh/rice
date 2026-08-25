@@ -26,8 +26,10 @@ Helpers available from `lib/common.sh`:
 - `run <cmd>` — respects `--dry-run`; use it for anything that mutates
 - `have <cmd>` — is a command on PATH
 - `pkg_install <pkg>...` — installs only what's missing, via dnf/pacman/apt/zypper/brew
-- `link_file <src> <dst>` — symlink with automatic backup of what was there
-- `link_tree <dir>` — mirror `dir` into `$HOME` as symlinks
+- `link_file <src> <dst>` — symlink one file; prompts before overwriting a
+  real file already there (no backup — decline to leave it untouched)
+- `link_tree <dir>` — stow `dir` (must be named `home`) into `$HOME` via GNU
+  Stow; same per-file overwrite prompt for anything Stow can't fold in
 - `clone_or_update <url> <dest> [git-args]` — idempotent clone
 
 A minimal module:
