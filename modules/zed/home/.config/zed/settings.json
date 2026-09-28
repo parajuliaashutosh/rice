@@ -1,0 +1,84 @@
+// Zed settings — managed by rice (symlink to modules/zed/home/.config/zed).
+//
+// Reference: https://zed.dev/docs/configuring-zed
+// `zed: open default settings` in the command palette shows everything
+// that can go in here.
+{
+  // Installed on first launch, so a fresh machine ends up with the same
+  // language support and themes as this one.
+  "auto_install_extensions": {
+    "catppuccin-icons": true,
+    "codebook": true,
+    "colored-zed-icons-theme": true,
+    "dockerfile": true,
+    "git-firefly": true,
+    "graphql": true,
+    "helm": true,
+    "html": true,
+    "java": true,
+    "lua": true,
+    "make": true,
+    "proto": true,
+    "svelte": true,
+    "terraform": true,
+    "toml": true
+  },
+
+  "diff_view_style": "unified",
+  "bottom_dock_layout": "left_aligned",
+  "title_bar": {
+    "button_layout": "platform_default",
+    "show_branch_status_icon": true
+  },
+  "status_bar": {
+    "show_active_file": true
+  },
+  "project_panel": {
+    "diagnostic_badges": true,
+    "git_status_indicator": true,
+    "dock": "left"
+  },
+  "terminal": {
+    "flexible": false,
+    "show_count_badge": true
+  },
+  "debugger": {
+    "dock": "left"
+  },
+  "collaboration_panel": {
+    "dock": "left"
+  },
+  "outline_panel": {
+    "dock": "left"
+  },
+  "git_panel": {
+    "fallback_branch_name": "main",
+    "group_by": "staging",
+    "tree_view": false,
+    "dock": "left"
+  },
+  "autosave": "on_window_change",
+  "cli_default_open_behavior": "new_window",
+  "session": {
+    "trust_all_worktrees": true
+  },
+  "base_keymap": "VSCode",
+  "show_signature_help_after_edits": true,
+  "auto_signature_help": true,
+  "minimap": {
+    "show": "always"
+  },
+  "show_completions_on_input": true,
+  "icon_theme": {
+    "mode": "dark",
+    "light": "Zed (Default)",
+    "dark": "Catppuccin Frappé"
+  },
+  "ui_font_size": 16,
+  "buffer_font_size": 15,
+  "theme": {
+    "mode": "dark",
+    "light": "One Light",
+    "dark": "One Dark"
+  }
+}

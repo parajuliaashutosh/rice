@@ -30,6 +30,7 @@ idempotent.
 | module | what it sets up |
 |--------|-----------------|
 | `zsh`  | oh-my-zsh, powerlevel10k, autosuggestions, syntax highlighting, my shell config |
+| `zed`  | the Zed editor and its settings (extensions install themselves on first launch) |
 
 Future: `hyprland`, `waybar`, `nvim`, `git`, `kitty` — see [MODULES.md](MODULES.md).
 
@@ -40,13 +41,16 @@ rice/
 ├── install.sh              entry point
 ├── lib/common.sh           logging, symlinking, package install, git clone
 └── modules/
-    └── zsh/
-        ├── module.sh       install steps for this module
-        ├── zshrc.local.example
-        └── home/           mirrored into $HOME
-            ├── .zshrc
-            ├── .p10k.zsh
-            └── .config/zsh/conf.d/*.zsh
+    ├── zsh/
+    │   ├── module.sh       install steps for this module
+    │   ├── zshrc.local.example
+    │   └── home/           mirrored into $HOME
+    │       ├── .zshrc
+    │       ├── .p10k.zsh
+    │       └── .config/zsh/conf.d/*.zsh
+    └── zed/
+        ├── module.sh
+        └── home/.config/zed/settings.json
 ```
 
 ## How the zsh config is organised
@@ -70,6 +74,16 @@ To add config, drop a new numbered file in there — don't grow `.zshrc`.
 Every block in `40-path.zsh` and `50-tools.zsh` is guarded, so a machine
 without (say) sdkman or the Android SDK just gets a shorter `PATH` rather than
 a broken shell.
+
+## Zed
+
+`./install.sh zed` installs Zed (via zed.dev on Linux, `brew --cask` on macOS —
+skipped if it's already on PATH) and symlinks `~/.config/zed/settings.json`.
+
+The extension list lives in `auto_install_extensions` at the top of that file,
+so a fresh machine downloads the same themes and language support on first
+launch — there's nothing to run by hand. To add one, install it from the
+extensions panel and add its id to that block.
 
 ## Machine-specific things
 
