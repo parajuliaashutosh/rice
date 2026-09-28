@@ -31,8 +31,9 @@ idempotent.
 |--------|-----------------|
 | `zsh`  | oh-my-zsh, powerlevel10k, autosuggestions, syntax highlighting, my shell config |
 | `zed`  | the Zed editor and its settings (extensions install themselves on first launch) |
+| `hyprland` | Hyprland + hyprlock/hypridle config, including all keybinds |
 
-Future: `hyprland`, `waybar`, `nvim`, `git`, `kitty` — see [MODULES.md](MODULES.md).
+Future: `waybar`, `nvim`, `git`, `kitty` — see [MODULES.md](MODULES.md).
 
 ## Layout
 
@@ -48,9 +49,12 @@ rice/
     │       ├── .zshrc
     │       ├── .p10k.zsh
     │       └── .config/zsh/conf.d/*.zsh
-    └── zed/
+    ├── zed/
+    │   ├── module.sh
+    │   └── home/.config/zed/settings.json
+    └── hyprland/
         ├── module.sh
-        └── home/.config/zed/settings.json
+        └── home/.config/hypr/   (keybinds in hyprland/keybinds.lua)
 ```
 
 ## How the zsh config is organised
