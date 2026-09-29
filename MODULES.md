@@ -43,5 +43,8 @@ MOD="${MODULE_DIR}"
 link_tree "$MOD/home"
 ```
 
-That's it — `./install.sh` picks it up automatically. Keep every step
+That's it — `./install.sh` picks it up automatically. To make a module
+opt-in, add an empty `.optional` file next to its `module.sh`: a bare
+`./install.sh` then asks before running it, and `./install.sh <name>` still
+installs it directly. Keep every step
 idempotent: running the installer twice must be a no-op.

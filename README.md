@@ -18,7 +18,7 @@ it's overwritten with no backup. Re-running it is safe — every step is
 idempotent.
 
 ```sh
-./install.sh              # all modules
+./install.sh              # all modules (asks about optional ones)
 ./install.sh zsh          # just one
 ./install.sh --list       # what's available
 ./install.sh --dry-run    # show the plan, change nothing
@@ -32,6 +32,11 @@ idempotent.
 | `zsh`  | oh-my-zsh, powerlevel10k, autosuggestions, syntax highlighting, my shell config |
 | `zed`  | the Zed editor and its settings (extensions install themselves on first launch) |
 | `hyprland` | Hyprland + hyprlock/hypridle config, including all keybinds |
+| `pentest` *(optional)* | Kali-style lab tooling on Fedora (see [Pentest](#pentest)); `~/labs/{thm,htb,vpn}` |
+
+Optional modules (a `.optional` file in the module dir) are skipped by a bare
+`./install.sh` unless you answer yes to its prompt. Naming one
+(`./install.sh pentest`) installs it directly.
 
 Future: `waybar`, `nvim`, `git`, `kitty` — see [MODULES.md](MODULES.md).
 
@@ -52,9 +57,11 @@ rice/
     ├── zed/
     │   ├── module.sh
     │   └── home/.config/zed/settings.json
-    └── hyprland/
-        ├── module.sh
-        └── home/.config/hypr/   (keybinds in hyprland/keybinds.lua)
+    ├── hyprland/
+    │   ├── module.sh
+    │   └── home/.config/hypr/   (keybinds in hyprland/keybinds.lua)
+    └── pentest/                 opt-in (.optional), no config to link
+        └── module.sh
 ```
 
 ## How the zsh config is organised
@@ -88,6 +95,28 @@ The extension list lives in `auto_install_extensions` at the top of that file,
 so a fresh machine downloads the same themes and language support on first
 launch — there's nothing to run by hand. To add one, install it from the
 extensions panel and add its id to that block.
+
+## Pentest
+
+`./install.sh pentest` installs lab tooling for TryHackMe / HackTheBox. Only
+use it against machines you're authorised to test.
+
+| from | tools |
+|------|-------|
+| distro packages | nmap, ncat, hydra, john, hashcat, tshark, openvpn, gobuster, ffuf, masscan, whatweb, dnsenum, smbclient, onesixtyone, snmp utils, medusa, ncrack |
+| git clone → `~/.local/share` | sqlmap, nikto, enum4linux, hash-identifier, commix, cewl, snmp-check |
+| pipx | fierce, hashid, smbmap, wfuzz, dnsrecon, enum4linux-ng |
+| user gems | wpscan |
+| GitHub release binary | feroxbuster |
+| built from source | crunch, nbtscan |
+| asked first | Metasploit, SecLists (~1.5 GB), Burp Suite Community, ZAP |
+
+Anything not from the distro lives under `~/.local` (launchers in
+`~/.local/bin`), and re-running updates it. A tool that fails to install is
+warned about and skipped rather than failing the module. Scan output and notes go in
+`~/labs`, **not** in this repo. Keep them in their own private repo, since HTB
+doesn't allow public writeups of active boxes. To connect to a lab VPN:
+`sudo openvpn ~/labs/vpn/<file>.ovpn`.
 
 ## Machine-specific things
 
