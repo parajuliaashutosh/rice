@@ -2,7 +2,7 @@
 #  Tokyo Night — Powerlevel10k theme
 #  Night greys for structure, blue accent; colour only where it means something:
 #  green = ok/clean · yellow = changed/slow · red = error/prod
-#  Layout:  dir ── git ── ❯          ⏱ time on the right
+#  Layout:  dir ── git          ⏱ time on the right
 # ─────────────────────────────────────────────────────────────────────────────
 
 'builtin' 'local' '-a' 'p10k_config_opts'
@@ -31,7 +31,6 @@
   typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
     dir                     # current directory
     vcs                     # git branch + status
-    prompt_char             # ❯  where you type
   )
 
   typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
@@ -158,19 +157,6 @@
   }
   functions -M my_git_formatter 2>/dev/null
   typeset -g POWERLEVEL9K_VCS_CONTENT_EXPANSION='${$((my_git_formatter()))+${my_git_format}}'
-
-  # ── Prompt character ❯ (right end of the prompt, where you type) ──────────
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_BACKGROUND=
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_{VIINS,VICMD,VIVIS,VIOWR}_FOREGROUND=$C_GREEN
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_{VIINS,VICMD,VIVIS,VIOWR}_FOREGROUND=$C_RED
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_{OK,ERROR}_VIINS_CONTENT_EXPANSION='❯'
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_{OK,ERROR}_VICMD_CONTENT_EXPANSION='❮'
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_{OK,ERROR}_VIVIS_CONTENT_EXPANSION='V'
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_{OK,ERROR}_VIOWR_CONTENT_EXPANSION='▶'
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_OVERWRITE_STATE=true
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_LEFT_LEFT_WHITESPACE=' '
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_LEFT_RIGHT_WHITESPACE=''
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_LEFT_PROMPT_LAST_SEGMENT_END_SYMBOL=''
 
   # ── Status (only complains when something failed) ─────────────────────────
   typeset -g POWERLEVEL9K_STATUS_OK=false
