@@ -8,8 +8,8 @@ hl.monitor({
 
 hl.gesture({
     fingers = 3,
-    direction = "swipe",
-    action = "move"
+    direction = "vertical",
+    action = "workspace"
 })
 hl.gesture({
     fingers = 3,
@@ -18,19 +18,19 @@ hl.gesture({
 })
 hl.gesture({
     fingers = 4,
-    direction = "horizontal",
-    action = "workspace"
+    direction = "swipe",
+    action = "move"
 })
 hl.gesture({
-    fingers = 4,
-    direction = "up",
+    fingers = 3,
+    direction = "left",
     action = function()
         hl.dispatch(hl.dsp.global("quickshell:overviewWorkspacesToggle"))
     end
 })
 hl.gesture({
-    fingers = 4,
-    direction = "down",
+    fingers = 3,
+    direction = "right",
     action = function()
         hl.dispatch(hl.dsp.global("quickshell:overviewWorkspacesToggle"))
     end
