@@ -32,13 +32,14 @@ idempotent.
 | `zsh`  | oh-my-zsh, powerlevel10k, autosuggestions, syntax highlighting, my shell config |
 | `zed`  | the Zed editor and its settings (extensions install themselves on first launch) |
 | `hyprland` | Hyprland + hyprlock/hypridle config, including all keybinds |
+| `kitty` | kitty config; SUPER+Enter opens a tab in the workspace's kitty (SUPER+Shift+Enter for a new window) |
 | `pentest` *(optional)* | Kali-style lab tooling on Fedora (see [Pentest](#pentest)); `~/labs/{thm,htb,vpn}` |
 
 Optional modules (a `.optional` file in the module dir) are skipped by a bare
 `./install.sh` unless you answer yes to its prompt. Naming one
 (`./install.sh pentest`) installs it directly.
 
-Future: `waybar`, `nvim`, `git`, `kitty` — see [MODULES.md](MODULES.md).
+Future: `waybar`, `nvim`, `git` — see [MODULES.md](MODULES.md).
 
 ## Layout
 
@@ -60,6 +61,9 @@ rice/
     ├── hyprland/
     │   ├── module.sh
     │   └── home/.config/hypr/   (keybinds in hyprland/keybinds.lua)
+    ├── kitty/
+    │   ├── module.sh
+    │   └── home/.config/kitty/  (kitty.conf + search/scroll kittens)
     └── pentest/                 opt-in (.optional), no config to link
         └── module.sh
 ```
