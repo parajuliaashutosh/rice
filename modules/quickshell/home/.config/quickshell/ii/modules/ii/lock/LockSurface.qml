@@ -23,10 +23,9 @@ MouseArea {
     readonly property color colText: "#f3efe8"
     readonly property color colDim: Qt.rgba(0.95, 0.94, 0.91, 0.62)
     readonly property color colFaint: Qt.rgba(1, 1, 1, 0.14)
-    readonly property color colAccent: "#c9a77c"
+    readonly property color colAccent: Qt.rgba(1, 1, 1, 0.42)
     readonly property color colError: "#e8a39a"
     readonly property string fontSerif: "Noto Serif"
-    readonly property string fontMono: "JetBrainsMono Nerd Font"
     readonly property string fontSans: Appearance.font.family.main
 
     property string fullName: ""
@@ -130,10 +129,8 @@ MouseArea {
     // ── Building blocks ──────────────────────────────────────────────────────
     component Label: Text {
         color: root.colText
-        font.family: root.fontMono
-        font.pixelSize: 12
-        font.letterSpacing: 4
-        font.capitalization: Font.AllUppercase
+        font.family: root.fontSans
+        font.pixelSize: 13
     }
 
     component Rule: Rectangle {
@@ -154,13 +151,12 @@ MouseArea {
 
         Label {
             text: "Good things"
-            font.pixelSize: 14
-            font.letterSpacing: 5
+            font.pixelSize: 18
         }
         Label {
             text: "Take time"
             color: root.colDim
-            font.pixelSize: 10
+            font.pixelSize: 14
         }
         Rule {
             anchors.left: parent.left
@@ -190,14 +186,12 @@ MouseArea {
             Label {
                 anchors.verticalCenter: parent.verticalCenter
                 text: Weather.data?.temp ?? "--°"
-                font.pixelSize: 15
-                font.letterSpacing: 3
+                font.pixelSize: 17
             }
         }
         Label {
             anchors.right: parent.right
             text: Weather.data?.city ?? ""
-            font.capitalization: Font.MixedCase
         }
         Rule {
             anchors.right: parent.right
@@ -206,7 +200,7 @@ MouseArea {
             anchors.right: parent.right
             text: root.weatherText(Weather.data.wCode)
             color: root.colDim
-            font.pixelSize: 10
+            font.pixelSize: 13
         }
     }
 
@@ -243,9 +237,8 @@ MouseArea {
 
         Label {
             Layout.topMargin: 4
-            text: Qt.locale().toString(DateTime.clock.date, "ddd, MMM dd, yyyy")
-            font.pixelSize: 22
-            font.letterSpacing: 6
+            text: Qt.locale().toString(DateTime.clock.date, "ddd, MMM d, yyyy")
+            font.pixelSize: 24
         }
 
         Text {
@@ -343,9 +336,7 @@ MouseArea {
                     visible: root.fullName.length > 0
                     text: SystemInfo.username
                     color: root.colDim
-                    font.pixelSize: 9
-                    font.letterSpacing: 2
-                    font.capitalization: Font.MixedCase
+                    font.pixelSize: 12
                 }
 
                 // Password
@@ -409,7 +400,7 @@ MouseArea {
                         font.pixelSize: 14
                         placeholderText: GlobalStates.screenUnlockFailed ? Translation.tr("Incorrect password") : Translation.tr("Enter your password")
                         placeholderTextColor: GlobalStates.screenUnlockFailed ? root.colError : root.colDim
-                        selectionColor: Qt.rgba(0.79, 0.65, 0.49, 0.4)
+                        selectionColor: Qt.rgba(1, 1, 1, 0.25)
                         echoMode: reveal ? TextInput.Normal : TextInput.Password
                         passwordCharacter: "•"
                         inputMethodHints: Qt.ImhSensitiveData
@@ -454,7 +445,7 @@ MouseArea {
                     Layout.topMargin: 14
                     implicitHeight: 42
                     radius: height / 2
-                    color: signInArea.containsMouse ? Qt.rgba(0.79, 0.65, 0.49, 0.14) : "transparent"
+                    color: signInArea.containsMouse ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
                     border.width: 1
                     border.color: root.colAccent
                     Behavior on color {
@@ -472,8 +463,7 @@ MouseArea {
                                 return "Restart";
                             return "Sign in";
                         }
-                        font.pixelSize: 11
-                        font.capitalization: Font.MixedCase
+                        font.pixelSize: 14
                     }
                     MaterialSymbol {
                         anchors.right: parent.right
@@ -481,7 +471,7 @@ MouseArea {
                         anchors.verticalCenter: parent.verticalCenter
                         text: root.ctrlHeld ? "coffee" : "login"
                         iconSize: 17
-                        color: root.colAccent
+                        color: root.colText
                     }
                     MouseArea {
                         id: signInArea
@@ -509,9 +499,7 @@ MouseArea {
         Label {
             text: "Discipline today,\nfreedom tomorrow."
             color: root.colDim
-            font.pixelSize: 11
-            font.letterSpacing: 2.5
-            font.capitalization: Font.MixedCase
+            font.pixelSize: 14
             lineHeight: 1.4
         }
         Rule {}
@@ -533,8 +521,7 @@ MouseArea {
             rightPadding: 18
             text: `${Math.round(Battery.percentage * 100)}%`
             color: (Battery.isLow && !Battery.isCharging) ? root.colError : root.colDim
-            font.pixelSize: 11
-            font.letterSpacing: 2
+            font.pixelSize: 13
         }
         PowerButton {
             icon: "power_settings_new"
@@ -574,7 +561,7 @@ MouseArea {
             anchors.centerIn: parent
             text: btn.icon
             iconSize: 20
-            color: btn.toggled ? root.colAccent : (btnArea.containsMouse ? root.colText : root.colDim)
+            color: btn.toggled ? root.colText : (btnArea.containsMouse ? root.colText : root.colDim)
         }
         MouseArea {
             id: btnArea
