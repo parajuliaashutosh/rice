@@ -32,9 +32,6 @@ MouseArea {
     property string fullName: ""
     readonly property string displayName: fullName.length > 0 ? fullName : SystemInfo.username
 
-    readonly property int hour: DateTime.clock.date.getHours()
-    readonly property string greeting: hour < 5 ? "Good night" : hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : hour < 21 ? "Good evening" : "Good night"
-
     function weatherText(code) {
         const c = Number(code);
         if (c === 113) return "Clear skies";
@@ -145,7 +142,7 @@ MouseArea {
         color: root.colAccent
     }
 
-    // ── Top left: greeting ───────────────────────────────────────────────────
+    // ── Top left: motto ──────────────────────────────────────────────────────
     Column {
         anchors {
             left: parent.left
@@ -156,7 +153,7 @@ MouseArea {
         opacity: root.shown
 
         Label {
-            text: root.greeting
+            text: "Good things"
             font.pixelSize: 14
             font.letterSpacing: 5
         }
