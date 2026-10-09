@@ -4,6 +4,8 @@
 #   bar layout: distro logo + workspaces | weather, ↓/↑ net | clock • AD date • Nepali (BS) date
 #               | Samsung-style battery | CPU/RAM/swap | color picker, brightness, tray | indicators
 #   clicking the clock opens hamropatro.com; services/NepaliDate.qml does the AD → BS conversion.
+#   lock screen: sharp wallpaper + frosted-glass card (avatar from ~/.face, time, English + Nepali date).
+#   wallpaper: no desktop clock.
 
 MOD="${MODULE_DIR:-$RICE_DIR/modules/quickshell}"
 II="$HOME/.config/quickshell/ii"
@@ -37,6 +39,8 @@ else
       | .bar.weather.enable = true
       | .bar.utilButtons.showColorPicker = true
       | .bar.utilButtons.showKeyboardToggle = false
-      | .bar.utilButtons.showScreenSnip = false' "$CONFIG" >"$tmp" && mv "$tmp" "$CONFIG"
+      | .bar.utilButtons.showScreenSnip = false
+      | .background.widgets.clock.enable = false
+      | .lock.blur.enable = false' "$CONFIG" >"$tmp" && mv "$tmp" "$CONFIG"
   ok "bar settings applied to $CONFIG"
 fi

@@ -12,6 +12,7 @@ import Quickshell
 Singleton {
     id: root
 
+    readonly property var weekdaysNp: ["आइतबार", "सोमबार", "मङ्गलबार", "बुधबार", "बिहीबार", "शुक्रबार", "शनिबार"]
     readonly property var monthsNp: ["वैशाख", "जेठ", "असार", "साउन", "भदौ", "असोज", "कार्तिक", "मंसिर", "पुष", "माघ", "फागुन", "चैत"]
 
     // [year, days in month 1..12]
@@ -89,6 +90,7 @@ Singleton {
 
     readonly property var today: toBs(DateTime.clock.date)
     readonly property string text: today ? `${toNepaliDigits(today.day)} ${monthsNp[today.month - 1]} ${toNepaliDigits(today.year)}` : ""
+    readonly property string longText: today ? `${weekdaysNp[DateTime.clock.date.getDay()]}, ${text}` : ""
 
     function toNepaliDigits(n) {
         return String(n).replace(/[0-9]/g, d => "०१२३४५६७८९"[d]);
