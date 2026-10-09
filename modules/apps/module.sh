@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# apps module: everyday apps for a fresh install — Brave, VS Code, Docker, kubectl, Slack.
+# apps module: everyday apps for a fresh install — Brave, Chrome, Firefox, VS Code, Docker,
+# kubectl, Slack, OBS Studio.
 # Fedora (dnf), openSUSE (zypper) and Arch (pacman + AUR) only; anything else is skipped.
-# Vendor repos are added the way each vendor documents; Slack comes from Flathub everywhere.
+# Vendor repos are added the way each vendor documents; Slack and OBS come from Flathub everywhere.
 # To add more: plain distro packages go in EXTRA_PKGS, Flathub apps in FLATPAKS.
 
 EXTRA_PKGS=(git curl jq)
-FLATPAKS=(com.slack.Slack)
+FLATPAKS=(com.slack.Slack com.obsproject.Studio)
 
 if [ "${SKIP_DEPS:-0}" = "1" ]; then
   skip "dependency install disabled (--no-deps) — nothing else to do"
@@ -71,6 +72,13 @@ if [ "$PM" != "pacman" ]; then
 
   add_rpm_repo brave-browser https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
 
+  add_rpm_repo google-chrome "[google-chrome]
+name=google-chrome
+baseurl=https://dl.google.com/linux/chrome/rpm/stable/x86_64
+enabled=1
+gpgcheck=1
+gpgkey=https://dl.google.com/linux/linux_signing_key.pub"
+
   add_rpm_repo vscode "[code]
 name=Visual Studio Code
 baseurl=https://packages.microsoft.com/yumrepos/vscode
@@ -104,17 +112,17 @@ pkg_install "${EXTRA_PKGS[@]}" flatpak
 
 case "$PM" in
 dnf)
-  pkg_install brave-browser code kubectl
+  pkg_install brave-browser google-chrome-stable firefox code kubectl
   # Docker CE can lag behind a brand-new Fedora release; fall back to Fedora's moby-engine
   pkg_install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin ||
     pkg_install moby-engine docker-compose docker-buildx
   ;;
 zypper)
-  pkg_install brave-browser code kubectl docker docker-compose docker-buildx
+  pkg_install brave-browser google-chrome-stable MozillaFirefox code kubectl docker docker-compose docker-buildx
   ;;
 pacman)
-  pkg_install docker docker-compose docker-buildx kubectl
-  aur_install brave-bin visual-studio-code-bin
+  pkg_install firefox docker docker-compose docker-buildx kubectl
+  aur_install brave-bin google-chrome visual-studio-code-bin
   ;;
 esac
 
@@ -124,8 +132,8 @@ if have flatpak || [ "$DRY_RUN" = "1" ]; then
   for app in "${FLATPAKS[@]}"; do
     if flatpak info "$app" >/dev/null 2>&1; then
       skip "$app already installed"
-    elif [ "$app" = "com.slack.Slack" ] && have slack; then
-      skip "slack already installed natively"
+    elif { [ "$app" = "com.slack.Slack" ] && have slack; } || { [ "$app" = "com.obsproject.Studio" ] && have obs; }; then
+      skip "$app already installed natively"
     else
       run $SUDO flatpak install -y --noninteractive flathub "$app"
     fi
