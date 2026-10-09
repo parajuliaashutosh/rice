@@ -36,16 +36,23 @@ usage() { sed -n '2,17p' "$0" | sed 's/^#//;s/^ //'; }
 targets=()
 while [ $# -gt 0 ]; do
   case "$1" in
-    -h|--help)    usage; exit 0 ;;
-    -l|--list)
-      while IFS= read -r m; do
-        if is_optional "$m"; then echo "$m (optional)"; else echo "$m"; fi
-      done < <(list_modules)
-      exit 0 ;;
-    -n|--dry-run) DRY_RUN=1; export DRY_RUN ;;
-    --no-deps)    SKIP_DEPS=1 ;;
-    -*)           die "unknown option: $1" ;;
-    *)            targets+=("$1") ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  -l | --list)
+    while IFS= read -r m; do
+      if is_optional "$m"; then echo "$m (optional)"; else echo "$m"; fi
+    done < <(list_modules)
+    exit 0
+    ;;
+  -n | --dry-run)
+    DRY_RUN=1
+    export DRY_RUN
+    ;;
+  --no-deps) SKIP_DEPS=1 ;;
+  -*) die "unknown option: $1" ;;
+  *) targets+=("$1") ;;
   esac
   shift
 done
@@ -73,15 +80,23 @@ info "modules: ${targets[*]}"
 failed=()
 for m in "${targets[@]}"; do
   mod="$MODULES_DIR/$m"
-  [ -d "$mod" ] || { err "no such module: $m"; failed+=("$m"); continue; }
-  [ -f "$mod/module.sh" ] || { err "$m has no module.sh"; failed+=("$m"); continue; }
+  [ -d "$mod" ] || {
+    err "no such module: $m"
+    failed+=("$m")
+    continue
+  }
+  [ -f "$mod/module.sh" ] || {
+    err "$m has no module.sh"
+    failed+=("$m")
+    continue
+  }
 
   echo
   info "── module: $m ──"
   MODULE_DIR="$mod"
   export MODULE_DIR
   # Each module runs in a subshell so one failure can't poison the rest.
-  if ( . "$mod/module.sh" ); then
+  if (. "$mod/module.sh"); then
     ok "module $m done"
   else
     err "module $m failed"
