@@ -1,7 +1,8 @@
 # ─────────────────────────────────────────────────────────────────────────────
-#  🇳🇵  NEPAL — Powerlevel10k theme
-#  Palette: Crimson #DC143C · Blue #003893 · White #FFFFFF
-#  Layout:  [flag] ── dir ── git ── ❯          ⏱ time on the right
+#  Tokyo Night — Powerlevel10k theme
+#  Night greys for structure, blue accent; colour only where it means something:
+#  green = ok/clean · yellow = changed/slow · red = error/prod
+#  Layout:  dir ── git ── ❯          ⏱ time on the right
 # ─────────────────────────────────────────────────────────────────────────────
 
 'builtin' 'local' '-a' 'p10k_config_opts'
@@ -14,15 +15,20 @@
   emulate -L zsh -o extended_glob
   unset -m '(POWERLEVEL9K_*|DEFAULT_USER)~POWERLEVEL9K_GITSTATUS_DIR'
 
-  # ── Nepal palette ─────────────────────────────────────────────────────────
-  local NP_RED='#DC143C'      # crimson field
-  local NP_BLUE='#003893'     # border blue
-  local NP_WHITE='#FFFFFF'    # sun & moon
-  local NP_SNOW='#F4F4F5'
+  # ── Palette ───────────────────────────────────────────────────────────────
+  local C_BG='#292e42'        # segment background
+  local C_BG_HI='#3b4261'     # directory / clock background
+  local C_FG='#c0caf5'        # normal text
+  local C_DIM='#737aa2'       # secondary text
+  local C_DARK='#1a1b26'      # text on bright backgrounds
+  local C_BLUE='#7aa2f7'      # accent
+  local C_CYAN='#7dcfff'      # kube context
+  local C_GREEN='#9ece6a'     # ok / clean
+  local C_YELLOW='#e0af68'    # changed / slow
+  local C_RED='#f7768e'       # error / prod
 
   # ── Segments ──────────────────────────────────────────────────────────────
   typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
-    nepal_flag              # 🇳🇵  the flag
     dir                     # current directory
     vcs                     # git branch + status
     prompt_char             # ❯  where you type
@@ -57,17 +63,11 @@
   typeset -g POWERLEVEL9K_PROMPT_ADD_NEWLINE=true
   typeset -g POWERLEVEL9K_MULTILINE_FIRST_PROMPT_GAP_CHAR=' '
 
-  # ── 🇳🇵 flag segment ───────────────────────────────────────────────────────
-  function prompt_nepal_flag() {
-    p10k segment -b '#003893' -f '#FFFFFF' -t '🇳🇵'
-  }
-  function instant_prompt_nepal_flag() { prompt_nepal_flag }
-
   # ── Directory ─────────────────────────────────────────────────────────────
-  typeset -g POWERLEVEL9K_DIR_BACKGROUND=$NP_RED
-  typeset -g POWERLEVEL9K_DIR_FOREGROUND=$NP_WHITE
-  typeset -g POWERLEVEL9K_DIR_SHORTENED_FOREGROUND='#FFC4CE'
-  typeset -g POWERLEVEL9K_DIR_ANCHOR_FOREGROUND=$NP_WHITE
+  typeset -g POWERLEVEL9K_DIR_BACKGROUND=$C_BG_HI
+  typeset -g POWERLEVEL9K_DIR_FOREGROUND=$C_FG
+  typeset -g POWERLEVEL9K_DIR_SHORTENED_FOREGROUND=$C_DIM
+  typeset -g POWERLEVEL9K_DIR_ANCHOR_FOREGROUND=$C_BLUE
   typeset -g POWERLEVEL9K_DIR_ANCHOR_BOLD=true
   typeset -g POWERLEVEL9K_SHORTEN_STRATEGY=truncate_to_unique
   typeset -g POWERLEVEL9K_SHORTEN_DELIMITER='…'
@@ -97,17 +97,17 @@
   typeset -g POWERLEVEL9K_DIR_HOME_SUB_VISUAL_IDENTIFIER_EXPANSION='󰉋'
   typeset -g POWERLEVEL9K_DIR_DEFAULT_VISUAL_IDENTIFIER_EXPANSION='󰉋'
 
-  # ── Git (white segment — the sun & moon of the flag) ──────────────────────
-  typeset -g POWERLEVEL9K_VCS_CLEAN_BACKGROUND=$NP_SNOW
-  typeset -g POWERLEVEL9K_VCS_CLEAN_FOREGROUND=$NP_BLUE
-  typeset -g POWERLEVEL9K_VCS_MODIFIED_BACKGROUND=$NP_SNOW
-  typeset -g POWERLEVEL9K_VCS_MODIFIED_FOREGROUND=$NP_RED
-  typeset -g POWERLEVEL9K_VCS_UNTRACKED_BACKGROUND=$NP_SNOW
-  typeset -g POWERLEVEL9K_VCS_UNTRACKED_FOREGROUND=$NP_BLUE
-  typeset -g POWERLEVEL9K_VCS_CONFLICTED_BACKGROUND=$NP_RED
-  typeset -g POWERLEVEL9K_VCS_CONFLICTED_FOREGROUND=$NP_WHITE
-  typeset -g POWERLEVEL9K_VCS_LOADING_BACKGROUND=$NP_SNOW
-  typeset -g POWERLEVEL9K_VCS_LOADING_FOREGROUND='#8A8A8A'
+  # ── Git (green clean · yellow dirty · red conflict) ───────────────────────
+  typeset -g POWERLEVEL9K_VCS_CLEAN_BACKGROUND=$C_BG
+  typeset -g POWERLEVEL9K_VCS_CLEAN_FOREGROUND=$C_GREEN
+  typeset -g POWERLEVEL9K_VCS_MODIFIED_BACKGROUND=$C_BG
+  typeset -g POWERLEVEL9K_VCS_MODIFIED_FOREGROUND=$C_YELLOW
+  typeset -g POWERLEVEL9K_VCS_UNTRACKED_BACKGROUND=$C_BG
+  typeset -g POWERLEVEL9K_VCS_UNTRACKED_FOREGROUND=$C_YELLOW
+  typeset -g POWERLEVEL9K_VCS_CONFLICTED_BACKGROUND=$C_RED
+  typeset -g POWERLEVEL9K_VCS_CONFLICTED_FOREGROUND=$C_DARK
+  typeset -g POWERLEVEL9K_VCS_LOADING_BACKGROUND=$C_BG
+  typeset -g POWERLEVEL9K_VCS_LOADING_FOREGROUND=$C_DIM
 
   typeset -g POWERLEVEL9K_VCS_BRANCH_ICON=' '
   typeset -g POWERLEVEL9K_VCS_COMMIT_ICON=' '
@@ -161,8 +161,8 @@
 
   # ── Prompt character ❯ (right end of the prompt, where you type) ──────────
   typeset -g POWERLEVEL9K_PROMPT_CHAR_BACKGROUND=
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_{VIINS,VICMD,VIVIS,VIOWR}_FOREGROUND=$NP_RED
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_{VIINS,VICMD,VIVIS,VIOWR}_FOREGROUND='#FF4D6D'
+  typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_{VIINS,VICMD,VIVIS,VIOWR}_FOREGROUND=$C_GREEN
+  typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_{VIINS,VICMD,VIVIS,VIOWR}_FOREGROUND=$C_RED
   typeset -g POWERLEVEL9K_PROMPT_CHAR_{OK,ERROR}_VIINS_CONTENT_EXPANSION='❯'
   typeset -g POWERLEVEL9K_PROMPT_CHAR_{OK,ERROR}_VICMD_CONTENT_EXPANSION='❮'
   typeset -g POWERLEVEL9K_PROMPT_CHAR_{OK,ERROR}_VIVIS_CONTENT_EXPANSION='V'
@@ -175,75 +175,75 @@
   # ── Status (only complains when something failed) ─────────────────────────
   typeset -g POWERLEVEL9K_STATUS_OK=false
   typeset -g POWERLEVEL9K_STATUS_ERROR=true
-  typeset -g POWERLEVEL9K_STATUS_ERROR_BACKGROUND=$NP_RED
-  typeset -g POWERLEVEL9K_STATUS_ERROR_FOREGROUND=$NP_WHITE
+  typeset -g POWERLEVEL9K_STATUS_ERROR_BACKGROUND=$C_RED
+  typeset -g POWERLEVEL9K_STATUS_ERROR_FOREGROUND=$C_DARK
   typeset -g POWERLEVEL9K_STATUS_ERROR_VISUAL_IDENTIFIER_EXPANSION='✘'
-  typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_BACKGROUND=$NP_RED
-  typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_FOREGROUND=$NP_WHITE
+  typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_BACKGROUND=$C_RED
+  typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_FOREGROUND=$C_DARK
   typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_VISUAL_IDENTIFIER_EXPANSION='󰚌'
-  typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_BACKGROUND=$NP_RED
-  typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_FOREGROUND=$NP_WHITE
+  typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_BACKGROUND=$C_RED
+  typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_FOREGROUND=$C_DARK
   typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_VISUAL_IDENTIFIER_EXPANSION='✘'
 
   # ── Command duration ──────────────────────────────────────────────────────
   typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_THRESHOLD=2
   typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_PRECISION=1
   typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_FORMAT=compact
-  typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_BACKGROUND=$NP_SNOW
-  typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_FOREGROUND=$NP_RED
+  typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_BACKGROUND=$C_BG
+  typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_FOREGROUND=$C_YELLOW
   typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_VISUAL_IDENTIFIER_EXPANSION='󱎫'
 
   # ── Background jobs ───────────────────────────────────────────────────────
-  typeset -g POWERLEVEL9K_BACKGROUND_JOBS_BACKGROUND=$NP_BLUE
-  typeset -g POWERLEVEL9K_BACKGROUND_JOBS_FOREGROUND=$NP_WHITE
+  typeset -g POWERLEVEL9K_BACKGROUND_JOBS_BACKGROUND=$C_BG
+  typeset -g POWERLEVEL9K_BACKGROUND_JOBS_FOREGROUND=$C_FG
   typeset -g POWERLEVEL9K_BACKGROUND_JOBS_VERBOSE=true
   typeset -g POWERLEVEL9K_BACKGROUND_JOBS_VISUAL_IDENTIFIER_EXPANSION='󰑮'
 
-  # ── Toolchain segments (blue, shown only when relevant) ───────────────────
-  typeset -g POWERLEVEL9K_DIRENV_BACKGROUND=$NP_BLUE
-  typeset -g POWERLEVEL9K_DIRENV_FOREGROUND=$NP_WHITE
+  # ── Toolchain segments (shown only when relevant) ───────────────────
+  typeset -g POWERLEVEL9K_DIRENV_BACKGROUND=$C_BG
+  typeset -g POWERLEVEL9K_DIRENV_FOREGROUND=$C_FG
   typeset -g POWERLEVEL9K_DIRENV_VISUAL_IDENTIFIER_EXPANSION='󰙪'
 
-  typeset -g POWERLEVEL9K_VIRTUALENV_BACKGROUND=$NP_BLUE
-  typeset -g POWERLEVEL9K_VIRTUALENV_FOREGROUND=$NP_WHITE
+  typeset -g POWERLEVEL9K_VIRTUALENV_BACKGROUND=$C_BG
+  typeset -g POWERLEVEL9K_VIRTUALENV_FOREGROUND=$C_FG
   typeset -g POWERLEVEL9K_VIRTUALENV_SHOW_PYTHON_VERSION=false
   typeset -g POWERLEVEL9K_VIRTUALENV_{LEFT,RIGHT}_DELIMITER=''
   typeset -g POWERLEVEL9K_VIRTUALENV_VISUAL_IDENTIFIER_EXPANSION='󰌠'
 
-  typeset -g POWERLEVEL9K_NODE_VERSION_BACKGROUND=$NP_BLUE
-  typeset -g POWERLEVEL9K_NODE_VERSION_FOREGROUND=$NP_WHITE
+  typeset -g POWERLEVEL9K_NODE_VERSION_BACKGROUND=$C_BG
+  typeset -g POWERLEVEL9K_NODE_VERSION_FOREGROUND=$C_FG
   typeset -g POWERLEVEL9K_NODE_VERSION_PROJECT_ONLY=true
   typeset -g POWERLEVEL9K_NODE_VERSION_VISUAL_IDENTIFIER_EXPANSION='󰎙'
 
-  typeset -g POWERLEVEL9K_GO_VERSION_BACKGROUND=$NP_BLUE
-  typeset -g POWERLEVEL9K_GO_VERSION_FOREGROUND=$NP_WHITE
+  typeset -g POWERLEVEL9K_GO_VERSION_BACKGROUND=$C_BG
+  typeset -g POWERLEVEL9K_GO_VERSION_FOREGROUND=$C_FG
   typeset -g POWERLEVEL9K_GO_VERSION_PROJECT_ONLY=true
   typeset -g POWERLEVEL9K_GO_VERSION_VISUAL_IDENTIFIER_EXPANSION=''
 
-  typeset -g POWERLEVEL9K_JAVA_VERSION_BACKGROUND=$NP_BLUE
-  typeset -g POWERLEVEL9K_JAVA_VERSION_FOREGROUND=$NP_WHITE
+  typeset -g POWERLEVEL9K_JAVA_VERSION_BACKGROUND=$C_BG
+  typeset -g POWERLEVEL9K_JAVA_VERSION_FOREGROUND=$C_FG
   typeset -g POWERLEVEL9K_JAVA_VERSION_PROJECT_ONLY=true
   typeset -g POWERLEVEL9K_JAVA_VERSION_FULL=false
   typeset -g POWERLEVEL9K_JAVA_VERSION_VISUAL_IDENTIFIER_EXPANSION=''
 
   # ── Kubernetes: only surfaces for k8s commands (you live in k9s) ──────────
   typeset -g POWERLEVEL9K_KUBECONTEXT_SHOW_ON_COMMAND='kubectl|helm|kubens|kubectx|k9s|oc|istioctl|kogito|stern|flux|argocd'
-  typeset -g POWERLEVEL9K_KUBECONTEXT_DEFAULT_BACKGROUND=$NP_BLUE
-  typeset -g POWERLEVEL9K_KUBECONTEXT_DEFAULT_FOREGROUND=$NP_WHITE
+  typeset -g POWERLEVEL9K_KUBECONTEXT_DEFAULT_BACKGROUND=$C_BG
+  typeset -g POWERLEVEL9K_KUBECONTEXT_DEFAULT_FOREGROUND=$C_CYAN
   typeset -g POWERLEVEL9K_KUBECONTEXT_DEFAULT_VISUAL_IDENTIFIER_EXPANSION='󱃾'
   typeset -g POWERLEVEL9K_KUBECONTEXT_CLASSES=(
     '*prod*'  PROD
     '*'       DEFAULT
   )
-  typeset -g POWERLEVEL9K_KUBECONTEXT_PROD_BACKGROUND=$NP_RED
-  typeset -g POWERLEVEL9K_KUBECONTEXT_PROD_FOREGROUND=$NP_WHITE
+  typeset -g POWERLEVEL9K_KUBECONTEXT_PROD_BACKGROUND=$C_RED
+  typeset -g POWERLEVEL9K_KUBECONTEXT_PROD_FOREGROUND=$C_DARK
   typeset -g POWERLEVEL9K_KUBECONTEXT_PROD_VISUAL_IDENTIFIER_EXPANSION='󱃾'
   typeset -g POWERLEVEL9K_KUBECONTEXT_DEFAULT_CONTENT_EXPANSION='${P9K_KUBECONTEXT_CLOUD_CLUSTER:-${P9K_KUBECONTEXT_NAME}}${${:-/$P9K_KUBECONTEXT_NAMESPACE}:#/default}'
   typeset -g POWERLEVEL9K_KUBECONTEXT_PROD_CONTENT_EXPANSION=$POWERLEVEL9K_KUBECONTEXT_DEFAULT_CONTENT_EXPANSION
 
-  # ── Clock (far right, crimson) ────────────────────────────────────────────
-  typeset -g POWERLEVEL9K_TIME_BACKGROUND=$NP_RED
-  typeset -g POWERLEVEL9K_TIME_FOREGROUND=$NP_WHITE
+  # ── Clock (far right) ────────────────────────────────────────────
+  typeset -g POWERLEVEL9K_TIME_BACKGROUND=$C_BG_HI
+  typeset -g POWERLEVEL9K_TIME_FOREGROUND=$C_DIM
   typeset -g POWERLEVEL9K_TIME_FORMAT='%D{%-I:%M:%S %p}'
   typeset -g POWERLEVEL9K_TIME_UPDATE_ON_COMMAND=false
   typeset -g POWERLEVEL9K_TIME_VISUAL_IDENTIFIER_EXPANSION='󰥔'
@@ -264,7 +264,7 @@
   typeset -g POWERLEVEL9K_TIME_ICON_BEFORE_CONTENT=true
 
   # ── Behaviour ─────────────────────────────────────────────────────────────
-  # Keep the full flag prompt on every past command instead of collapsing it
+  # Keep the full prompt on every past command instead of collapsing it
   typeset -g POWERLEVEL9K_TRANSIENT_PROMPT=off
   typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
   typeset -g POWERLEVEL9K_DISABLE_HOT_RELOAD=true

@@ -1,16 +1,16 @@
-# 🇳🇵 Nepal terminal tuning — autosuggestion + syntax-highlight palette.
+# Terminal tuning — autosuggestion + syntax-highlight palette (Tokyo Night).
 
-# Autosuggestion ghost text — muted crimson
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#7A5560'
+# Autosuggestion ghost text — Tokyo Night comment grey
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#565f89'
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 
-# ── What you type is white ───────────────────────────────────────────────────
-# Everything on the command line renders white; only an unknown command stays
-# red, so typos are still visible before you hit enter.
+# ── What you type is plain foreground ────────────────────────────────────────
+# Everything on the command line renders in the foreground colour; only an
+# unknown command stays red, so typos are still visible before you hit enter.
 typeset -gA ZSH_HIGHLIGHT_STYLES
 
 # Anything the highlighter doesn't have a specific rule for.
-ZSH_HIGHLIGHT_STYLES[default]='fg=#FFFFFF'
+ZSH_HIGHLIGHT_STYLES[default]='fg=#c0caf5'
 
 for _hl_white in \
   command builtin function alias suffix-alias global-alias reserved-word \
@@ -27,22 +27,22 @@ for _hl_white in \
   command-substitution command-substitution-delimiter \
   arithmetic-expansion \
   ; do
-  ZSH_HIGHLIGHT_STYLES[$_hl_white]='fg=#FFFFFF'
+  ZSH_HIGHLIGHT_STYLES[$_hl_white]='fg=#c0caf5'
 done
 unset _hl_white
 
 # The two deliberate exceptions.
-ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=#FF4D6D,bold'   # typo / unknown command
-ZSH_HIGHLIGHT_STYLES[comment]='fg=#6E6A6C'              # dim, it isn't executed
+ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=#f7768e,bold'   # typo / unknown command
+ZSH_HIGHLIGHT_STYLES[comment]='fg=#565f89'              # dim, it isn't executed
 
-# ── Terminal cursor: white ───────────────────────────────────────────────────
+# ── Terminal cursor: foreground ──────────────────────────────────────────────
 # OSC 12 sets the cursor colour (kitty, foot, alacritty, wezterm, xterm…).
 # Deferred to the first precmd so it never prints during p10k's instant prompt,
 # then unhooks itself — it only needs to run once per shell.
-_rice_white_cursor() {
-  printf '\e]12;#FFFFFF\a'
-  add-zsh-hook -d precmd _rice_white_cursor
-  unfunction _rice_white_cursor
+_rice_cursor_color() {
+  printf '\e]12;#c0caf5\a'
+  add-zsh-hook -d precmd _rice_cursor_color
+  unfunction _rice_cursor_color
 }
 autoload -Uz add-zsh-hook
-add-zsh-hook precmd _rice_white_cursor
+add-zsh-hook precmd _rice_cursor_color
