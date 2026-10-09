@@ -253,8 +253,8 @@ MouseArea {
 
         Text {
             Layout.topMargin: 10
-            visible: NepaliDate.longText !== ""
-            text: NepaliDate.longText
+            visible: NepaliDate.text !== ""
+            text: NepaliDate.text
             color: root.colDim
             font.family: "Noto Sans Devanagari"
             font.pixelSize: 17
