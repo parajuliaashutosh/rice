@@ -37,6 +37,8 @@ else
   tmp="$(mktemp)"
   jq '.bar.topLeftIcon = "distro"
       | .bar.weather.enable = true
+      | .bar.weather.city = "Kathmandu"
+      | .bar.weather.enableGPS = false
       | .bar.utilButtons.showColorPicker = true
       | .bar.utilButtons.showKeyboardToggle = false
       | .bar.utilButtons.showScreenSnip = false
