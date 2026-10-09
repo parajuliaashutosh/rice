@@ -2,11 +2,12 @@
 # apps module: everyday apps for a fresh install — Brave, Chrome, Firefox, VS Code, Docker,
 # kubectl, Slack, OBS Studio.
 # Fedora (dnf), openSUSE (zypper) and Arch (pacman + AUR) only; anything else is skipped.
-# Vendor repos are added the way each vendor documents; Slack and OBS come from Flathub everywhere.
+# Vendor repos are added the way each vendor documents. Slack comes from Flathub everywhere;
+# OBS is the distro package on Fedora/Arch and Flathub on openSUSE (only Packman ships it there).
 # To add more: plain distro packages go in EXTRA_PKGS, Flathub apps in FLATPAKS.
 
 EXTRA_PKGS=(git curl jq)
-FLATPAKS=(com.slack.Slack com.obsproject.Studio)
+FLATPAKS=(com.slack.Slack)
 
 if [ "${SKIP_DEPS:-0}" = "1" ]; then
   skip "dependency install disabled (--no-deps) — nothing else to do"
@@ -112,16 +113,17 @@ pkg_install "${EXTRA_PKGS[@]}" flatpak
 
 case "$PM" in
 dnf)
-  pkg_install brave-browser google-chrome-stable firefox code kubectl
+  pkg_install brave-browser google-chrome-stable firefox code kubectl obs-studio
   # Docker CE can lag behind a brand-new Fedora release; fall back to Fedora's moby-engine
   pkg_install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin ||
     pkg_install moby-engine docker-compose docker-buildx
   ;;
 zypper)
   pkg_install brave-browser google-chrome-stable MozillaFirefox code kubectl docker docker-compose docker-buildx
+  FLATPAKS+=(com.obsproject.Studio)
   ;;
 pacman)
-  pkg_install firefox docker docker-compose docker-buildx kubectl
+  pkg_install firefox obs-studio docker docker-compose docker-buildx kubectl
   aur_install brave-bin google-chrome visual-studio-code-bin
   ;;
 esac
