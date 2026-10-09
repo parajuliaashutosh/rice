@@ -2,7 +2,8 @@
 # apps module: everyday apps for a fresh install — Brave, Chrome, Firefox, VS Code, Docker,
 # kubectl, Slack, OBS Studio.
 # Fedora (dnf), openSUSE (zypper) and Arch (pacman + AUR) only; anything else is skipped.
-# Vendor repos are added the way each vendor documents. Slack comes from Flathub everywhere;
+# Official packages first: distro repos, then each vendor's own repo added the way the vendor
+# documents it; Flathub/AUR only when there's no official package. Slack comes from Flathub everywhere;
 # OBS is the distro package on Fedora/Arch and Flathub on openSUSE (only Packman ships it there).
 # To add more: plain distro packages go in EXTRA_PKGS, Flathub apps in FLATPAKS.
 
@@ -27,7 +28,9 @@ SUDO=""
 [ "$(id -u)" -ne 0 ] && SUDO="sudo"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
-# add_rpm_repo <name> <url-of-.repo-file | inline contents> — dnf and zypper both read .repo files.
+# add_rpm_repo <name> <url-of-.repo-file | inline contents>
+# A URL is added with each vendor's documented command (dnf config-manager / zypper addrepo);
+# inline contents are written to the repos dir, as Microsoft, Google and Kubernetes document.
 add_rpm_repo() {
   local name="$1" src="$2" dir=/etc/yum.repos.d
   [ "$PM" = "zypper" ] && dir=/etc/zypp/repos.d
@@ -36,12 +39,18 @@ add_rpm_repo() {
     return 0
   fi
   info "adding repo $name"
-  if [ "$DRY_RUN" = "1" ]; then
-    skip "would write $dir/$name.repo"
-    return 0
-  fi
   if [[ "$src" == https://* ]]; then
-    curl -fsSL "$src" | $SUDO tee "$dir/$name.repo" >/dev/null
+    if [ "$PM" = "zypper" ]; then
+      run $SUDO zypper --non-interactive addrepo "$src"
+    elif dnf --version 2>/dev/null | grep -q dnf5; then
+      pkg_install dnf-plugins-core
+      run $SUDO dnf config-manager addrepo --from-repofile="$src"
+    else
+      pkg_install dnf-plugins-core
+      run $SUDO dnf config-manager --add-repo "$src"
+    fi
+  elif [ "$DRY_RUN" = "1" ]; then
+    skip "would write $dir/$name.repo"
   else
     printf '%s\n' "$src" | $SUDO tee "$dir/$name.repo" >/dev/null
   fi
