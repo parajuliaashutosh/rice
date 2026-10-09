@@ -193,7 +193,9 @@ hl.bind("SUPER + F", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "t
     { description = "Window: Fullscreen" })
 hl.bind("SUPER + ALT + F", hl.dsp.window.fullscreen_state({ internal = 0, client = 3, action = "toggle" }),
     { description = "Window: Fullscreen spoof" })
-hl.bind("SUPER + P", hl.dsp.window.pin(), { description = "Window: Pin" })
+hl.bind("SUPER + ALT + P", hl.dsp.window.pin(), { description = "Window: Pin" })
+hl.bind("SUPER + P", hl.dsp.exec_cmd("~/.config/hypr/hyprland/scripts/display_mode.sh"),
+    { description = "Display: Project (duplicate/extend)" })
 
 --#/# bind = SUPER+ALT, Hash,, -- Send to workspace -- (1, 2, 3,...)
 for i = 1, 10 do
