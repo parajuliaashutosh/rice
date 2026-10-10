@@ -7,6 +7,11 @@ set -euo pipefail
 RICE_DIR="${RICE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 DRY_RUN="${DRY_RUN:-0}"
 
+# rice's bar/lock files are full copies of end-4 files from this commit, and the Lua Hyprland
+# config needs at least this Hyprland. base/hyprland enforce these; lib/check.sh verifies them.
+RICE_END4_REF="d192a25f"
+RICE_MIN_HYPRLAND="0.55.0"
+
 # ── output ───────────────────────────────────────────────────────────────────
 if [ -t 1 ]; then
   C_RESET=$'\033[0m'; C_BLUE=$'\033[1;34m'; C_GREEN=$'\033[1;32m'

@@ -23,8 +23,34 @@ fi
 
 PM="$(pkg_manager)"
 
+# app_installed <name> — already on this machine, from any source (distro, vendor, Flathub, AUR)?
+app_installed() {
+  case "$1" in
+  brave) have brave-browser || have brave ;;
+  chrome) have google-chrome-stable || have google-chrome ;;
+  firefox) have firefox ;;
+  vscode) have code ;;
+  docker) have docker ;;
+  kubectl) have kubectl ;;
+  slack) have slack || flatpak info com.slack.Slack >/dev/null 2>&1 ;;
+  obs) have obs || flatpak info com.obsproject.Studio >/dev/null 2>&1 ;;
+  *) return 1 ;;
+  esac
+}
+
 # ── pick apps ────────────────────────────────────────────────────────────────
-# RICE_APPS="brave docker" (or "all") skips the question, e.g. for scripted installs.
+# Only apps that aren't installed yet are offered. RICE_APPS="brave docker" (or "all") skips
+# the question, e.g. for scripted installs; "all" still skips what's already there.
+installed=() offered=()
+for entry in "${APPS[@]}"; do
+  if app_installed "${entry%%|*}"; then installed+=("${entry#*|}"); else offered+=("$entry"); fi
+done
+[ ${#installed[@]} -gt 0 ] && skip "already installed: $(IFS=,; echo "${installed[*]}" | sed 's/,/, /g')"
+if [ ${#offered[@]} -eq 0 ]; then
+  ok "all apps already installed"
+  return 0 2>/dev/null || exit 0
+fi
+
 selected="${RICE_APPS:-}"
 if [ -z "$selected" ]; then
   if [ ! -t 0 ]; then
@@ -32,23 +58,24 @@ if [ -z "$selected" ]; then
     return 0 2>/dev/null || exit 0
   fi
   echo
+  info "apps you don't have yet:"
   i=1
-  for entry in "${APPS[@]}"; do
+  for entry in "${offered[@]}"; do
     printf '   %d) %s\n' "$i" "${entry#*|}"
     i=$((i + 1))
   done
-  read -r -p "Install which apps? numbers like '1 4 5', 'a' for all, Enter for none: " reply
+  read -r -p "Install which? numbers like '1 3', 'a' for all, Enter for none: " reply
   case "$reply" in
   a | A | all) selected="all" ;;
   *)
     for n in $reply; do
-      [[ "$n" =~ ^[0-9]+$ ]] && [ "$n" -ge 1 ] && [ "$n" -le ${#APPS[@]} ] &&
-        selected+=" ${APPS[$((n - 1))]%%|*}"
+      [[ "$n" =~ ^[0-9]+$ ]] && [ "$n" -ge 1 ] && [ "$n" -le ${#offered[@]} ] &&
+        selected+=" ${offered[$((n - 1))]%%|*}"
     done
     ;;
   esac
 fi
-[ "$selected" = "all" ] && selected="$(for e in "${APPS[@]}"; do printf '%s ' "${e%%|*}"; done)"
+[ "$selected" = "all" ] && selected="$(for e in "${offered[@]}"; do printf '%s ' "${e%%|*}"; done)"
 if [ -z "${selected// /}" ]; then
   skip "no apps selected"
   return 0 2>/dev/null || exit 0

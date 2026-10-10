@@ -23,13 +23,17 @@ anything already installed or linked is skipped, and no extra backups are made.
 ./install.sh --list       # what's available
 ./install.sh --dry-run    # show the plan, change nothing
 ./install.sh --no-deps    # link configs only, skip package installs
+./install.sh --check      # is everything installed, linked and loading? (also runs after every install)
 ```
+
+Optional modules (pentest) and the app picker look first: they list what they'd install,
+tick what's already there, and only ask about what's missing.
 
 ## Modules
 
 | module | what it sets up |
 |--------|-----------------|
-| `base` | end-4's illogical-impulse shell (Hyprland, quickshell + deps) at a pinned commit — only if it isn't installed yet; Fedora/Arch (end-4 has no openSUSE installer). Always runs first |
+| `base` | end-4's illogical-impulse shell (Hyprland, quickshell + deps) at the pinned commit rice's bar/lock are built on. Installs it if missing (Fedora/Arch; end-4 has no openSUSE installer), switches its quickshell config to that commit if it's a different version. Always runs first |
 | `apps` | asks which to install: Brave, Chrome, Firefox, VS Code, Docker (no sudo), kubectl, Slack, OBS. Official packages first. `RICE_APPS="all"` or `RICE_APPS="brave docker"` skips the question |
 | `quickshell` | rice's bar (workspaces, weather, net speed, centred clock with Nepali date, battery), the lock screen, and a few end-4 settings |
 | `zsh`  | oh-my-zsh, powerlevel10k, autosuggestions, syntax highlighting, my shell config |

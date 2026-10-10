@@ -9,6 +9,7 @@
 #     ./install.sh --list          list available modules
 #     ./install.sh --dry-run zsh   show what would happen, change nothing
 #     ./install.sh --no-deps zsh   link configs only, skip package installs
+#     ./install.sh --check         check that everything is installed and working
 #
 #   Safe to re-run: anything already installed or linked is skipped, and files
 #   that would be replaced are backed up to <file>.rice-bak first.
@@ -33,7 +34,16 @@ list_modules() {
 # ./install.sh unless you say yes at the prompt; naming one always installs it.
 is_optional() { [ -f "$MODULES_DIR/$1/.optional" ]; }
 
-usage() { sed -n '2,19p' "$0" | sed 's/^#//;s/^ //'; }
+usage() { sed -n '2,20p' "$0" | sed 's/^#//;s/^ //'; }
+
+# optional_needed <module> — 0 if the module still has something to install. A module can ship
+# a status.sh defining module_status (prints what it installs; returns 0 when all present).
+optional_needed() {
+  local status="$MODULES_DIR/$1/status.sh"
+  [ -f "$status" ] || return 0
+  # shellcheck disable=SC1090
+  (. "$status" && ! module_status)
+}
 
 targets=()
 while [ $# -gt 0 ]; do
@@ -53,6 +63,12 @@ while [ $# -gt 0 ]; do
     export DRY_RUN
     ;;
   --no-deps) SKIP_DEPS=1 ;;
+  --check)
+    # shellcheck source=lib/check.sh
+    . "$RICE_DIR/lib/check.sh"
+    rice_check
+    exit $?
+    ;;
   -*) die "unknown option: $1" ;;
   *) targets+=("$1") ;;
   esac
@@ -66,7 +82,9 @@ if [ ${#targets[@]} -eq 0 ]; then
   for m in "${all_modules[@]}"; do
     if ! is_optional "$m"; then
       targets+=("$m")
-    elif confirm "Also install optional module '$m'?"; then
+    elif ! optional_needed "$m"; then
+      skip "optional module $m already installed (run ./install.sh $m to update it)"
+    elif confirm "Install optional module '$m'?"; then
       targets+=("$m")
     else
       skip "skipping optional module $m (run ./install.sh $m to add it later)"
@@ -122,4 +140,12 @@ if [ ${#failed[@]} -gt 0 ]; then
   err "failed: ${failed[*]}"
   exit 1
 fi
-ok "all done — open a new shell (or run: exec zsh)"
+ok "all done"
+
+# Verify the result so problems show up here, not after a re-login.
+if [ "$DRY_RUN" != "1" ]; then
+  # shellcheck source=lib/check.sh
+  . "$RICE_DIR/lib/check.sh"
+  echo
+  rice_check || true
+fi

@@ -13,6 +13,19 @@ if [ "${SKIP_DEPS:-0}" = "1" ]; then
 else
   copr_enable sdegler/hyprland
   pkg_install hyprland hyprlock hypridle jq fuzzel
+
+  # An older Hyprland silently ignores hyprland.lua and falls back to a legacy config,
+  # so none of rice's keybinds load. Upgrade it if needed.
+  hv="$(Hyprland --version 2>/dev/null | grep -oE 'Hyprland [0-9]+\.[0-9]+\.[0-9]+' | awk '{print $2}' || true)"
+  if [ -n "$hv" ] && [ "$(printf '%s\n' "$RICE_MIN_HYPRLAND" "$hv" | sort -V | head -1)" != "$RICE_MIN_HYPRLAND" ]; then
+    info "Hyprland $hv is too old for the Lua config — upgrading to $RICE_MIN_HYPRLAND+"
+    case "$RICE_OS" in
+    fedora) run $SUDO dnf upgrade -y --refresh hyprland hyprlock hypridle || true ;;
+    arch) run $SUDO pacman -Syu --needed --noconfirm hyprland hyprlock hypridle || true ;;
+    opensuse) run $SUDO zypper --non-interactive update hyprland hyprlock hypridle || true ;;
+    esac
+    warn "log out and back in so the new Hyprland starts"
+  fi
 fi
 
 # The binds call into quickshell (the "ii" shell), fuzzel, hyprpicker,
