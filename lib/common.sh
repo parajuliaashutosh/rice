@@ -195,3 +195,57 @@ clone_or_update() {
     ok "cloned $(basename "$dest")"
   fi
 }
+
+# ── picking ──────────────────────────────────────────────────────────────────
+# pick_missing <preset-var> <title> <is-installed-fn> "name|label"...
+# Lists what's already installed, offers only the rest as a numbered list, and sets PICKED to
+# the chosen names (space-separated). If the variable named <preset-var> is set ("all" or a
+# list of names) it's used instead of asking. No terminal and no preset → picks nothing.
+pick_missing() {
+  local preset="${!1:-}" var="$1" title="$2" check="$3" entry reply n i
+  shift 3
+  local installed=() offered=()
+  PICKED=""
+  for entry in "$@"; do
+    if "$check" "${entry%%|*}"; then installed+=("${entry#*|}"); else offered+=("$entry"); fi
+  done
+  if [ ${#installed[@]} -gt 0 ]; then
+    skip "already installed: $(printf '%s, ' "${installed[@]}" | sed 's/, $//')"
+  fi
+  if [ ${#offered[@]} -eq 0 ]; then
+    ok "everything already installed"
+    return 0
+  fi
+
+  if [ -n "$preset" ]; then
+    reply="$preset"
+  elif [ -t 0 ]; then
+    echo
+    info "$title you don't have yet:"
+    i=1
+    for entry in "${offered[@]}"; do
+      printf '   %d) %s\n' "$i" "${entry#*|}"
+      i=$((i + 1))
+    done
+    read -r -p "Install which? numbers like '1 3', 'a' for all, Enter for none: " reply
+  else
+    warn "no terminal to ask — skipping (set $var=\"all\" or a list of names)"
+    return 0
+  fi
+
+  case "$reply" in
+  a | A | all) for entry in "${offered[@]}"; do PICKED+="${entry%%|*} "; done ;;
+  *)
+    for n in $reply; do
+      if [[ "$n" =~ ^[0-9]+$ ]] && [ "$n" -ge 1 ] && [ "$n" -le ${#offered[@]} ]; then
+        PICKED+="${offered[$((n - 1))]%%|*} "
+      else
+        # a preset may name items directly; keep only ones on offer
+        for entry in "${offered[@]}"; do [ "${entry%%|*}" = "$n" ] && PICKED+="$n "; done
+      fi
+    done
+    ;;
+  esac
+  PICKED="${PICKED% }"
+  [ -n "$PICKED" ] || skip "nothing selected"
+}

@@ -29,6 +29,11 @@ elif (( $+commands[mise] )); then
   eval "$(mise activate zsh)"
 fi
 
+# ── nvm (Node versions) ──────────────────────────────────────────────────────
+export NVM_DIR="$HOME/.nvm"
+[[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+[[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+
 # ── sdkman ───────────────────────────────────────────────────────────────────
 # Upstream insists this goes last; keep it at the bottom of this file.
 export SDKMAN_DIR="$HOME/.sdkman"

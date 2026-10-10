@@ -40,46 +40,10 @@ app_installed() {
 
 # ── pick apps ────────────────────────────────────────────────────────────────
 # Only apps that aren't installed yet are offered. RICE_APPS="brave docker" (or "all") skips
-# the question, e.g. for scripted installs; "all" still skips what's already there.
-installed=() offered=()
-for entry in "${APPS[@]}"; do
-  if app_installed "${entry%%|*}"; then installed+=("${entry#*|}"); else offered+=("$entry"); fi
-done
-[ ${#installed[@]} -gt 0 ] && skip "already installed: $(IFS=,; echo "${installed[*]}" | sed 's/,/, /g')"
-if [ ${#offered[@]} -eq 0 ]; then
-  ok "all apps already installed"
-  return 0 2>/dev/null || exit 0
-fi
-
-selected="${RICE_APPS:-}"
-if [ -z "$selected" ]; then
-  if [ ! -t 0 ]; then
-    warn "no terminal to ask which apps to install — skipping (set RICE_APPS=\"all\" or a list)"
-    return 0 2>/dev/null || exit 0
-  fi
-  echo
-  info "apps you don't have yet:"
-  i=1
-  for entry in "${offered[@]}"; do
-    printf '   %d) %s\n' "$i" "${entry#*|}"
-    i=$((i + 1))
-  done
-  read -r -p "Install which? numbers like '1 3', 'a' for all, Enter for none: " reply
-  case "$reply" in
-  a | A | all) selected="all" ;;
-  *)
-    for n in $reply; do
-      [[ "$n" =~ ^[0-9]+$ ]] && [ "$n" -ge 1 ] && [ "$n" -le ${#offered[@]} ] &&
-        selected+=" ${offered[$((n - 1))]%%|*}"
-    done
-    ;;
-  esac
-fi
-[ "$selected" = "all" ] && selected="$(for e in "${offered[@]}"; do printf '%s ' "${e%%|*}"; done)"
-if [ -z "${selected// /}" ]; then
-  skip "no apps selected"
-  return 0 2>/dev/null || exit 0
-fi
+# the question, e.g. for scripted installs.
+pick_missing RICE_APPS "apps" app_installed "${APPS[@]}"
+[ -n "$PICKED" ] || { return 0 2>/dev/null || exit 0; }
+selected="$PICKED"
 info "apps: $selected"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
