@@ -11,12 +11,6 @@ if [ "${SKIP_DEPS:-0}" = "1" ]; then
   skip "dependency install disabled (--no-deps)"
 elif have zed; then
   skip "zed already installed ($(command -v zed))"
-elif [ "$RICE_OS" = "macos" ]; then
-  if have brew; then
-    run brew install --cask zed
-  else
-    warn "no brew — install Zed from https://zed.dev/download"
-  fi
 else
   pkg_install curl
   info "installing zed from zed.dev"

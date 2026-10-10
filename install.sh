@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-#   rice — dotfiles bootstrap
+#   rice — dotfiles bootstrap for Fedora, Arch and openSUSE
 #
 #   Usage:
 #     ./install.sh                 install every module in modules/ (asks about
@@ -10,6 +10,8 @@
 #     ./install.sh --dry-run zsh   show what would happen, change nothing
 #     ./install.sh --no-deps zsh   link configs only, skip package installs
 #
+#   Safe to re-run: anything already installed or linked is skipped, and files
+#   that would be replaced are backed up to <file>.rice-bak first.
 #   Add a new module by creating modules/<name>/module.sh (see modules/zsh).
 #   Drop an empty .optional file in a module to make it opt-in.
 
@@ -31,7 +33,7 @@ list_modules() {
 # ./install.sh unless you say yes at the prompt; naming one always installs it.
 is_optional() { [ -f "$MODULES_DIR/$1/.optional" ]; }
 
-usage() { sed -n '2,17p' "$0" | sed 's/^#//;s/^ //'; }
+usage() { sed -n '2,19p' "$0" | sed 's/^#//;s/^ //'; }
 
 targets=()
 while [ $# -gt 0 ]; do
@@ -73,8 +75,19 @@ if [ ${#targets[@]} -eq 0 ]; then
 fi
 [ ${#targets[@]} -eq 0 ] && die "no modules found in $MODULES_DIR"
 
+# base (end-4's shell) goes first: the hyprland, kitty and quickshell modules layer on top of it
+ordered=()
+for m in "${targets[@]}"; do [ "$m" = "base" ] && ordered+=("$m"); done
+for m in "${targets[@]}"; do [ "$m" != "base" ] && ordered+=("$m"); done
+targets=("${ordered[@]}")
+
+case "$RICE_OS" in
+fedora | arch | opensuse) ;;
+*) die "unsupported system — rice supports Fedora, Arch and openSUSE only" ;;
+esac
+
 [ "$DRY_RUN" = "1" ] && warn "dry run — nothing will be changed"
-info "rice: $RICE_DIR"
+info "rice: $RICE_DIR ($RICE_OS)"
 info "modules: ${targets[*]}"
 
 failed=()

@@ -11,15 +11,10 @@ MOD="${MODULE_DIR:-$RICE_DIR/modules/quickshell}"
 II="$HOME/.config/quickshell/ii"
 CONFIG="$HOME/.config/illogical-impulse/config.json"
 
-if [ "$RICE_OS" = "macos" ]; then
-  skip "quickshell is Linux-only"
-  return 0 2>/dev/null || exit 0
-fi
-
 # ── 1. base shell ────────────────────────────────────────────────────────────
 # These files replace a handful of end-4's; without the rest of ii they do nothing.
 if [ ! -d "$II" ]; then
-  warn "$II not found — install end-4's dots-hyprland (illogical-impulse) first, then rerun: ./install.sh quickshell"
+  warn "$II not found — the base module installs it (Fedora/Arch); then rerun: ./install.sh quickshell"
   return 0 2>/dev/null || exit 0
 fi
 
@@ -45,4 +40,11 @@ else
       | .background.widgets.clock.enable = false
       | .lock.blur.enable = false' "$CONFIG" >"$tmp" && mv "$tmp" "$CONFIG"
   ok "bar settings applied to $CONFIG"
+fi
+
+# ── 4. pick up the changes in a running session ──────────────────────────────
+if [ "$DRY_RUN" != "1" ] && [ "${RICE_NO_RELOAD:-0}" != "1" ] && pgrep -x qs >/dev/null; then
+  info "restarting quickshell"
+  pkill -x qs || true
+  setsid -f qs -c ii >/dev/null 2>&1 || warn "could not restart quickshell — log out and back in"
 fi

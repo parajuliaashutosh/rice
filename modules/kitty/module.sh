@@ -7,12 +7,6 @@ MOD="${MODULE_DIR:-$RICE_DIR/modules/kitty}"
 # ── 1. kitty itself ──────────────────────────────────────────────────────────
 if [ "${SKIP_DEPS:-0}" = "1" ]; then
   skip "dependency install disabled (--no-deps)"
-elif [ "$RICE_OS" = "macos" ]; then
-  if have brew; then
-    run brew install --cask kitty
-  else
-    warn "no brew — install kitty from https://sw.kovidgoyal.net/kitty/"
-  fi
 else
   pkg_install kitty
 fi
