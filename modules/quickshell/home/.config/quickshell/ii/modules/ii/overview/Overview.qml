@@ -78,6 +78,13 @@ Scope {
             // No fade: everything appears at once, so nothing flickers in while it settles
             visible: GlobalStates.overviewOpen
             color: ColorUtils.transparentize(Appearance.m3colors.m3background, 0.35)
+            // The bar draws rounded corners just below itself; round ours to match so they stay
+            // visible instead of the backdrop squaring them off
+            readonly property real barCornerRadius: (Config.options.bar.showBackground && Config.options.bar.cornerStyle === 0) ? Appearance.rounding.screenRounding : 0
+            topLeftRadius: Config.options.bar.bottom ? 0 : barCornerRadius
+            topRightRadius: Config.options.bar.bottom ? 0 : barCornerRadius
+            bottomLeftRadius: Config.options.bar.bottom ? barCornerRadius : 0
+            bottomRightRadius: Config.options.bar.bottom ? barCornerRadius : 0
             MouseArea {
                 anchors.fill: parent
                 onClicked: GlobalStates.overviewOpen = false
