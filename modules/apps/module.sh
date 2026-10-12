@@ -14,6 +14,7 @@ APPS=(
   "kubectl|kubectl"
   "slack|Slack"
   "obs|OBS Studio"
+  "libreoffice|LibreOffice (Writer, Calc, Impress)"
 )
 
 if [ "${SKIP_DEPS:-0}" = "1" ]; then
@@ -34,6 +35,7 @@ app_installed() {
   kubectl) have kubectl ;;
   slack) have slack || flatpak info com.slack.Slack >/dev/null 2>&1 ;;
   obs) have obs || flatpak info com.obsproject.Studio >/dev/null 2>&1 ;;
+  libreoffice) have libreoffice || have soffice ;;
   *) return 1 ;;
   esac
 }
@@ -219,6 +221,13 @@ install_obs() {
   case "$PM" in
   zypper) flathub_install com.obsproject.Studio obs ;; # only Packman ships it on openSUSE
   *) pkg_install obs-studio ;;
+  esac
+}
+
+install_libreoffice() {
+  case "$PM" in
+  pacman) pkg_install libreoffice-fresh ;;
+  *) pkg_install libreoffice-writer libreoffice-calc libreoffice-impress ;;
   esac
 }
 

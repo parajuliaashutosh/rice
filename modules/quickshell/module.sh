@@ -6,6 +6,7 @@
 #   clicking the clock opens hamropatro.com; services/NepaliDate.qml does the AD → BS conversion.
 #   lock screen: sharp wallpaper + frosted-glass card (avatar from ~/.face, time, English + Nepali date).
 #   wallpaper: no desktop clock.
+#   launcher (Super): workspace strip with wallpaper thumbnails, search, app grid + quick actions.
 
 MOD="${MODULE_DIR:-$RICE_DIR/modules/quickshell}"
 II="$HOME/.config/quickshell/ii"
