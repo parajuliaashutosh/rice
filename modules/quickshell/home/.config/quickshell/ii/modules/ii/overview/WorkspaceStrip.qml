@@ -10,8 +10,8 @@ import Quickshell.Wayland
 import Quickshell.Widgets
 import Quickshell.Hyprland
 
-// macOS Spaces-style strip: one thumbnail per workspace showing the wallpaper with live,
-// to-scale previews of its windows. The current workspace gets a thin ring; the number sits below.
+// macOS Spaces-style strip: one thumbnail per workspace showing the wallpaper with
+// to-scale snapshots of its windows. The current workspace gets a thin ring; the number sits below.
 // Width is set by the parent; thumbnails grow to fill it.
 Rectangle {
     id: root
@@ -81,7 +81,7 @@ Rectangle {
                             cache: true
                         }
 
-                        // Windows: live previews at their real position and size
+                        // Windows: snapshots at their real position and size
                         Repeater {
                             model: cell.windows
                             delegate: Item {
@@ -99,7 +99,8 @@ Rectangle {
                                 ScreencopyView {
                                     anchors.fill: parent
                                     captureSource: GlobalStates.overviewOpen ? (root.toplevelByAddress[win.modelData.address] ?? null) : null
-                                    live: true
+                                    // One snapshot per open: streaming every window each frame made the launcher lag
+                                    live: false
                                 }
                             }
                         }

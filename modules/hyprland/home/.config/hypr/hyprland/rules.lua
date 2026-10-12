@@ -141,7 +141,8 @@ hl.layer_rule({ match = { namespace = "quickshell:lockWindowPusher" }, no_anim =
 hl.layer_rule({ match = { namespace = "quickshell:notificationPopup" }, animation = "fade"})
 hl.layer_rule({ match = { namespace = "quickshell:overlay" }, no_anim = true})
 hl.layer_rule({ match = { namespace = "quickshell:overlay" }, ignore_alpha = 1})
-hl.layer_rule({ match = { namespace = "quickshell:overview" }, no_anim = true})
+-- Launcher fades in and out (blur included) instead of popping; speed is fadeLayersIn/Out
+hl.layer_rule({ match = { namespace = "quickshell:overview" }, animation = "fade"})
 -- Launcher: its translucent backdrop shows the blurred wallpaper (xray), not the windows
 hl.layer_rule({ match = { namespace = "quickshell:overview" }, ignore_alpha = 0.1})
 hl.layer_rule({ match = { namespace = "quickshell:osk" }, animation = "slide bottom"})
