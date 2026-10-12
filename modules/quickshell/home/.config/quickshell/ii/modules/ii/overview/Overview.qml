@@ -31,7 +31,7 @@ Scope {
         readonly property real contentWidth: Math.min(1760, panelWindow.width - 2 * Math.max(48, panelWindow.width * 0.06))
 
         mask: Region {
-            item: GlobalStates.overviewOpen ? backdrop : null
+            item: GlobalStates.overviewOpen ? clickCatcher : null
         }
 
         anchors {
@@ -71,24 +71,25 @@ Scope {
             searchWidget.focusFirstItem();
         }
 
-        // Backdrop: a wallpaper-tinted veil; Hyprland blurs what's behind it (rules.lua)
+        // Clicks anywhere outside the launcher content close it (including the gaps)
+        MouseArea {
+            id: clickCatcher
+            anchors.fill: parent
+            onClicked: GlobalStates.overviewOpen = false
+        }
+
+        // Backdrop: a wallpaper-tinted veil; Hyprland blurs what's behind it (rules.lua).
+        // Inset and rounded like a tiled window (general.lua: gaps_out = 5, rounding = 18).
         Rectangle {
             id: backdrop
-            anchors.fill: parent
+            anchors {
+                fill: parent
+                margins: 5
+            }
             // No fade: everything appears at once, so nothing flickers in while it settles
             visible: GlobalStates.overviewOpen
             color: ColorUtils.transparentize(Appearance.m3colors.m3background, 0.35)
-            // The bar draws rounded corners just below itself; round ours to match so they stay
-            // visible instead of the backdrop squaring them off
-            readonly property real barCornerRadius: (Config.options.bar.showBackground && Config.options.bar.cornerStyle === 0) ? Appearance.rounding.screenRounding : 0
-            topLeftRadius: Config.options.bar.bottom ? 0 : barCornerRadius
-            topRightRadius: Config.options.bar.bottom ? 0 : barCornerRadius
-            bottomLeftRadius: Config.options.bar.bottom ? barCornerRadius : 0
-            bottomRightRadius: Config.options.bar.bottom ? barCornerRadius : 0
-            MouseArea {
-                anchors.fill: parent
-                onClicked: GlobalStates.overviewOpen = false
-            }
+            radius: 18
         }
 
         // Launcher: workspace strip, search bar, then the app grid (hidden while searching)

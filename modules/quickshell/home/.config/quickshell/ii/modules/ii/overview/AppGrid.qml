@@ -184,24 +184,6 @@ Rectangle {
                 }
             }
 
-            // Mouse wheel / touchpad: one page per notch or swipe
-            WheelHandler {
-                property real acc: 0
-                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-                onWheel: event => {
-                    const d = Math.abs(event.angleDelta.x) > Math.abs(event.angleDelta.y) ? event.angleDelta.x : event.angleDelta.y;
-                    acc += d;
-                    if (Math.abs(acc) >= 120 && !flipCooldown.running) {
-                        root.goToPage(pageView.currentIndex + (acc < 0 ? 1 : -1));
-                        flipCooldown.start();
-                        acc = 0;
-                    }
-                }
-            }
-            Timer {
-                id: flipCooldown
-                interval: 300
-            }
         }
 
         Row { // Page dots
@@ -289,5 +271,29 @@ Rectangle {
                 }
             }
         }
+    }
+
+    // Mouse wheel / touchpad, vertical or horizontal: one page per notch or swipe.
+    // Sits above the pages so the horizontal ListView can't swallow vertical scrolls;
+    // takes no buttons, so clicks, hovers and drag-to-swipe still reach the apps.
+    MouseArea {
+        anchors.fill: parent
+        z: 1
+        acceptedButtons: Qt.NoButton
+        property real acc: 0
+        onWheel: event => {
+            event.accepted = true;
+            const d = Math.abs(event.angleDelta.x) > Math.abs(event.angleDelta.y) ? event.angleDelta.x : event.angleDelta.y;
+            acc += d;
+            if (Math.abs(acc) >= 120 && !flipCooldown.running) {
+                root.goToPage(pageView.currentIndex + (acc < 0 ? 1 : -1));
+                flipCooldown.start();
+                acc = 0;
+            }
+        }
+    }
+    Timer {
+        id: flipCooldown
+        interval: 300
     }
 }
