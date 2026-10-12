@@ -6,11 +6,13 @@ import qs.modules.common.widgets
 import qs.modules.common.functions
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 import Quickshell.Widgets
 import Quickshell.Hyprland
 
-// macOS Spaces-style strip: one small wallpaper thumbnail per workspace with its windows
-// drawn to scale. The current workspace just gets a thin border; no glow.
+// macOS Spaces-style strip: one thumbnail per workspace showing the wallpaper with live,
+// to-scale previews of its windows. The current workspace gets a thin ring; the number sits below.
+// Width is set by the parent; thumbnails grow to fill it.
 Rectangle {
     id: root
     required property var screen
@@ -22,159 +24,114 @@ Rectangle {
     readonly property int group: Math.floor((activeWorkspace - 1) / count)
     readonly property string wallpaper: Config.options.background.wallpaperPath
 
-    readonly property real thumbWidth: 104
+    readonly property real padding: 14
+    readonly property real spacing: 12
+    readonly property real thumbWidth: Math.floor((width - padding * 2 - spacing * (count - 1)) / count)
     readonly property real thumbHeight: Math.round(thumbWidth * (monitor?.height ?? 9) / (monitor?.width ?? 16))
-    readonly property real cellPadding: 6
 
-    // Frosted glass over the blurred backdrop, tinted by the wallpaper palette
-    readonly property color colPanel: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.93)
-    readonly property color colBorder: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.88)
-    readonly property color colCell: "transparent"
-    readonly property color colCellHover: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.92)
+    // Hyprland address -> Wayland toplevel, for the live previews
+    readonly property var toplevelByAddress: {
+        const map = {};
+        for (const t of ToplevelManager.toplevels.values)
+            map[`0x${t.HyprlandToplevel?.address}`] = t;
+        return map;
+    }
 
     function focusWorkspace(ws) {
         GlobalStates.overviewOpen = false;
         Hyprland.dispatch(`hl.dsp.focus({ workspace = ${ws} })`);
     }
 
-    // First empty workspace after the ones in use
-    function nextEmptyWorkspace() {
-        const used = HyprlandData.windowList.map(w => w.workspace.id).filter(id => id > 0);
-        for (let ws = 1; ws <= 100; ws++)
-            if (!used.includes(ws) && ws !== root.activeWorkspace)
-                return ws;
-        return root.activeWorkspace;
-    }
-
-    implicitWidth: row.implicitWidth + 16
-    implicitHeight: row.implicitHeight + 12
-    radius: Appearance.rounding.large + 6
-    color: colPanel
+    implicitHeight: row.implicitHeight + padding * 2
+    radius: Appearance.rounding.large
+    color: Appearance.colors.colLayer0
     border.width: 1
-    border.color: colBorder
+    border.color: Appearance.colors.colLayer0Border
 
     Row {
         id: row
         anchors.centerIn: parent
-        spacing: 6
+        spacing: root.spacing
 
         Repeater {
             model: root.count
-            delegate: Item {
+            delegate: Column {
                 id: cell
                 required property int index
                 readonly property int ws: root.group * root.count + index + 1
                 readonly property bool active: ws === root.activeWorkspace
-                readonly property var windows: HyprlandData.windowList.filter(w => w.workspace.id === cell.ws)
+                readonly property var windows: HyprlandData.windowList.filter(w => w.workspace.id === cell.ws && w.mapped && !w.hidden)
+                spacing: 7
 
-                implicitWidth: root.thumbWidth + root.cellPadding * 2
-                implicitHeight: cellColumn.implicitHeight + root.cellPadding * 2
+                Item {
+                    width: root.thumbWidth
+                    height: root.thumbHeight
 
-                Column {
-                    id: cellColumn
-                    anchors.centerIn: parent
-                    spacing: 6
+                    ClippingRectangle {
+                        id: thumb
+                        anchors.fill: parent
+                        radius: Appearance.rounding.small
+                        color: Appearance.colors.colLayer1
 
-                    Item {
-                        width: root.thumbWidth
-                        height: root.thumbHeight
-
-                        ClippingRectangle {
-                            id: thumb
+                        Image {
                             anchors.fill: parent
-                            radius: Appearance.rounding.small
-                            color: Appearance.colors.colLayer1
-                            opacity: cell.active || cellMouse.containsMouse ? 1 : 0.75
-                            Behavior on opacity {
-                                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
-                            }
+                            source: root.wallpaper ? `file://${root.wallpaper}` : ""
+                            sourceSize.width: root.thumbWidth * 2
+                            fillMode: Image.PreserveAspectCrop
+                            cache: true
+                        }
 
-                            Image {
-                                anchors.fill: parent
-                                source: root.wallpaper ? `file://${root.wallpaper}` : ""
-                                sourceSize.width: root.thumbWidth * 2
-                                fillMode: Image.PreserveAspectCrop
-                                asynchronous: true
-                                cache: true
-                            }
+                        // Windows: live previews at their real position and size
+                        Repeater {
+                            model: cell.windows
+                            delegate: Item {
+                                id: win
+                                required property var modelData
+                                readonly property var mon: HyprlandData.monitors.find(m => m.id === win.modelData.monitor) ?? root.monitorData
+                                readonly property real sx: root.thumbWidth / ((mon?.width ?? 1920) / (mon?.scale ?? 1))
+                                readonly property real sy: root.thumbHeight / ((mon?.height ?? 1080) / (mon?.scale ?? 1))
+                                x: (modelData.at[0] - (mon?.x ?? 0)) * sx
+                                y: (modelData.at[1] - (mon?.y ?? 0)) * sy
+                                z: modelData.floating ? 1 : 0
+                                width: Math.max(2, modelData.size[0] * sx)
+                                height: Math.max(2, modelData.size[1] * sy)
 
-                            // Windows, drawn to scale
-                            Repeater {
-                                model: cell.windows
-                                delegate: Rectangle {
-                                    id: win
-                                    required property var modelData
-                                    readonly property var mon: HyprlandData.monitors.find(m => m.id === win.modelData.monitor) ?? root.monitorData
-                                    readonly property real sx: root.thumbWidth / ((mon?.width ?? 1920) / (mon?.scale ?? 1))
-                                    readonly property real sy: root.thumbHeight / ((mon?.height ?? 1080) / (mon?.scale ?? 1))
-                                    x: (modelData.at[0] - (mon?.x ?? 0)) * sx
-                                    y: (modelData.at[1] - (mon?.y ?? 0)) * sy
-                                    width: Math.max(4, modelData.size[0] * sx)
-                                    height: Math.max(4, modelData.size[1] * sy)
-                                    radius: 3
-                                    color: ColorUtils.transparentize(Appearance.m3colors.m3surfaceContainer, 0.2)
-                                    border.width: 0.5
-                                    border.color: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.8)
-
-                                    IconImage {
-                                        anchors.centerIn: parent
-                                        implicitSize: Math.min(18, parent.width - 2, parent.height - 2)
-                                        visible: implicitSize >= 6
-                                        source: Quickshell.iconPath(AppSearch.guessIcon(win.modelData.class), "image-missing")
-                                    }
+                                ScreencopyView {
+                                    anchors.fill: parent
+                                    captureSource: GlobalStates.overviewOpen ? (root.toplevelByAddress[win.modelData.address] ?? null) : null
+                                    live: true
                                 }
                             }
                         }
+                    }
 
-                        Rectangle { // Current workspace: a thin ring around the thumbnail only
-                            anchors {
-                                fill: parent
-                                margins: -3
-                            }
-                            radius: thumb.radius + 3
-                            color: "transparent"
-                            border.width: 1.5
-                            border.color: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.2)
-                            opacity: cell.active ? 1 : 0
+                    Rectangle { // Ring: current workspace (solid) or hover (faint), around the thumbnail only
+                        anchors {
+                            fill: parent
+                            margins: -3
                         }
+                        radius: thumb.radius + 3
+                        color: "transparent"
+                        border.width: 2
+                        border.color: cell.active ? Appearance.colors.colOnLayer0 : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.7)
+                        visible: cell.active || cellMouse.containsMouse
                     }
 
-                    StyledText {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: cell.ws
-                        font.pixelSize: Appearance.font.pixelSize.smaller
-                        color: cell.active ? Appearance.colors.colOnLayer0 : Appearance.colors.colSubtext
+                    MouseArea {
+                        id: cellMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.focusWorkspace(cell.ws)
                     }
                 }
 
-
-                MouseArea {
-                    id: cellMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.focusWorkspace(cell.ws)
+                StyledText {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: cell.ws
+                    font.pixelSize: Appearance.font.pixelSize.smaller
+                    color: cell.active ? Appearance.colors.colOnLayer0 : Appearance.colors.colSubtext
                 }
-            }
-        }
-
-        RippleButton { // New workspace
-            anchors.verticalCenter: parent.verticalCenter
-            implicitWidth: 40
-            implicitHeight: implicitWidth
-            buttonRadius: implicitWidth / 2
-            colBackground: root.colCell
-            colBackgroundHover: root.colCellHover
-            onClicked: root.focusWorkspace(root.nextEmptyWorkspace())
-            contentItem: MaterialSymbol {
-                anchors.centerIn: parent
-                horizontalAlignment: Text.AlignHCenter
-                text: "add"
-                iconSize: Appearance.font.pixelSize.larger
-                color: Appearance.colors.colOnLayer0
-            }
-            StyledToolTip {
-                text: Translation.tr("New workspace")
             }
         }
     }

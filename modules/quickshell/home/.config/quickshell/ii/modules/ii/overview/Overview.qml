@@ -27,11 +27,11 @@ Scope {
         WlrLayershell.layer: WlrLayer.Top
         WlrLayershell.keyboardFocus: GlobalStates.overviewOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
         color: "transparent"
-        // Super+V / Super+. open just the search box with results, like end-4's original
-        readonly property bool searchOnly: overviewScope.dontAutoCancelSearch
+        // Launcher content width: strip and app panel line up, with a comfortable side margin
+        readonly property real contentWidth: Math.min(1760, panelWindow.width - 2 * Math.max(48, panelWindow.width * 0.06))
 
         mask: Region {
-            item: !GlobalStates.overviewOpen ? null : (panelWindow.searchOnly ? columnLayout : backdrop)
+            item: GlobalStates.overviewOpen ? backdrop : null
         }
 
         anchors {
@@ -75,12 +75,9 @@ Scope {
         Rectangle {
             id: backdrop
             anchors.fill: parent
-            visible: GlobalStates.overviewOpen && !panelWindow.searchOnly
+            // No fade: everything appears at once, so nothing flickers in while it settles
+            visible: GlobalStates.overviewOpen
             color: ColorUtils.transparentize(Appearance.m3colors.m3background, 0.35)
-            opacity: GlobalStates.overviewOpen ? 1 : 0
-            Behavior on opacity {
-                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
-            }
             MouseArea {
                 anchors.fill: parent
                 onClicked: GlobalStates.overviewOpen = false
@@ -94,9 +91,9 @@ Scope {
             anchors {
                 horizontalCenter: parent.horizontalCenter
                 top: parent.top
-                topMargin: panelWindow.searchOnly ? 0 : Math.max(32, (panelWindow.height - 720) / 3) // a little above centre
+                topMargin: Math.max(28, (panelWindow.height - 760) / 3) // a little above centre
             }
-            spacing: panelWindow.searchOnly ? 0 : 22
+            spacing: 22
 
             Keys.onPressed: event => {
                 if (event.key === Qt.Key_Escape) {
@@ -107,16 +104,17 @@ Scope {
             Loader {
                 id: stripLoader
                 anchors.horizontalCenter: parent.horizontalCenter
-                active: GlobalStates.overviewOpen && !panelWindow.searchOnly && (Config?.options.overview.enable ?? true)
+                // Kept loaded between opens so the thumbnails don't pop in each time
+                active: Config?.options.overview.enable ?? true
                 sourceComponent: WorkspaceStrip {
                     screen: panelWindow.screen
+                    width: panelWindow.contentWidth
                 }
             }
 
             SearchWidget {
                 id: searchWidget
                 anchors.horizontalCenter: parent.horizontalCenter
-                glass: !panelWindow.searchOnly
                 Synchronizer on searchingText {
                     property alias source: panelWindow.searchingText
                 }
@@ -125,10 +123,9 @@ Scope {
             Loader {
                 id: appGridLoader
                 anchors.horizontalCenter: parent.horizontalCenter
-                active: GlobalStates.overviewOpen && !panelWindow.searchOnly
                 visible: panelWindow.searchingText == ""
                 sourceComponent: AppGrid {
-                    width: Math.min(1100, panelWindow.width - 80)
+                    width: panelWindow.contentWidth
                     onSearchRequested: text => panelWindow.setSearchingText(text)
                 }
             }

@@ -16,15 +16,14 @@ Rectangle {
     id: root
     signal searchRequested(string text)
 
-    readonly property int columns: 10
+    // As many ~140px columns as fit, so the panel can be as wide as the screen allows
+    readonly property int columns: Math.max(6, Math.floor((width - 36) / 140))
     readonly property int rows: 3
     readonly property int perPage: columns * rows
     readonly property real cellHeight: 100
 
-    // Frosted glass over the blurred backdrop, tinted by the wallpaper palette
-    readonly property color colGlass: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.93)
-    readonly property color colBorder: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.88)
-    readonly property color colHover: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.9)
+    readonly property color colBorder: Appearance.colors.colLayer0Border
+    readonly property color colHover: Appearance.colors.colLayer1Hover
 
     // Known apps in display order; each slot lists alternative desktop IDs (distro, vendor, Flatpak)
     readonly property var commonApps: [
@@ -81,10 +80,18 @@ Rectangle {
     }
 
     implicitHeight: content.implicitHeight + 36
-    radius: Appearance.rounding.large + 8
-    color: colGlass
+    radius: Appearance.rounding.large
+    color: Appearance.colors.colLayer0
     border.width: 1
     border.color: colBorder
+
+    // The panel stays loaded between opens; start on favourites each time
+    Connections {
+        target: GlobalStates
+        function onOverviewOpenChanged() {
+            if (GlobalStates.overviewOpen) pageView.positionViewAtIndex(0, ListView.Beginning);
+        }
+    }
 
     ColumnLayout {
         id: content
