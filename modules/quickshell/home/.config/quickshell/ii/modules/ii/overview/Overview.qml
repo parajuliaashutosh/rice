@@ -2,6 +2,7 @@ import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.common.functions
 import Qt.labs.synchronizer
 import QtQuick
 import QtQuick.Controls
@@ -26,10 +27,8 @@ Scope {
         WlrLayershell.layer: WlrLayer.Top
         WlrLayershell.keyboardFocus: GlobalStates.overviewOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
         color: "transparent"
-
-        mask: Region {
-            item: GlobalStates.overviewOpen ? columnLayout : null
-        }
+        // Cover the whole screen (bar included) so the blurred backdrop is edge to edge
+        exclusionMode: ExclusionMode.Ignore
 
         anchors {
             top: true
@@ -68,6 +67,22 @@ Scope {
             searchWidget.focusFirstItem();
         }
 
+        // Backdrop: a wallpaper-tinted veil; Hyprland blurs what's behind it (rules.lua)
+        Rectangle {
+            id: backdrop
+            anchors.fill: parent
+            visible: GlobalStates.overviewOpen
+            color: ColorUtils.transparentize(Appearance.m3colors.m3background, 0.5)
+            opacity: GlobalStates.overviewOpen ? 1 : 0
+            Behavior on opacity {
+                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+            }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: GlobalStates.overviewOpen = false
+            }
+        }
+
         // Launcher: workspace strip, search bar, then the app grid (hidden while searching)
         Column {
             id: columnLayout
@@ -75,9 +90,9 @@ Scope {
             anchors {
                 horizontalCenter: parent.horizontalCenter
                 top: parent.top
-                topMargin: 24
+                topMargin: Math.max(40, (panelWindow.height - 690) / 3) // a little above centre
             }
-            spacing: 18
+            spacing: 22
 
             Keys.onPressed: event => {
                 if (event.key === Qt.Key_Escape) {

@@ -5,21 +5,26 @@ import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.common.functions
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 
-// Launcher app grid shown under the search bar while nothing is typed:
-// favourites first (pinned apps, then common ones that are installed), "All apps" for the rest.
+// Launchpad-style app pages shown under the search bar while nothing is typed.
+// Page 1 is favourites (pinned apps, then common ones that are installed); the following
+// pages hold every app A–Z. Flip pages with the scroll wheel, a swipe or the dots.
 Rectangle {
     id: root
     signal searchRequested(string text)
 
-    property bool showAll: false
     readonly property int columns: 10
-    readonly property int favouriteRows: 3
-    readonly property real cellHeight: 96
+    readonly property int rows: 3
+    readonly property int perPage: columns * rows
+    readonly property real cellHeight: 100
+
+    // Frosted glass over the blurred backdrop, tinted by the wallpaper palette
+    readonly property color colGlass: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.93)
+    readonly property color colBorder: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.88)
+    readonly property color colHover: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.9)
 
     // Known apps in display order; each slot lists alternative desktop IDs (distro, vendor, Flatpak)
     readonly property var commonApps: [
@@ -40,7 +45,6 @@ Rectangle {
         ["dbeaver", "io.dbeaver.DBeaverCommunity"],
         ["org.mozilla.Thunderbird", "thunderbird"],
         ["com.obsproject.Studio"],
-        ["libreoffice-startcenter"],
         ["libreoffice-writer"],
         ["libreoffice-calc"],
         ["libreoffice-impress"],
@@ -62,146 +66,184 @@ Rectangle {
         const add = app => { if (app && !out.includes(app)) out.push(app); };
         for (const id of Config.options.launcher.pinnedApps) add(byId[id]);
         for (const slot of root.commonApps) add(slot.map(id => byId[id]).find(Boolean));
-        return out.slice(0, root.columns * root.favouriteRows);
+        return out.slice(0, root.perPage);
     }
 
-    readonly property color colPanel: ColorUtils.transparentize(Appearance.m3colors.m3surfaceContainerLow, 0.12)
+    readonly property var pages: {
+        const out = [{ title: Translation.tr("Favourites"), apps: root.favourites }];
+        for (let i = 0; i < root.allApps.length; i += root.perPage)
+            out.push({ title: Translation.tr("All apps"), apps: root.allApps.slice(i, i + root.perPage) });
+        return out;
+    }
 
-    implicitHeight: content.implicitHeight + 32
-    radius: Appearance.rounding.large
-    color: colPanel
+    function goToPage(i) {
+        pageView.currentIndex = Math.max(0, Math.min(pageView.count - 1, i));
+    }
+
+    implicitHeight: content.implicitHeight + 36
+    radius: Appearance.rounding.large + 8
+    color: colGlass
     border.width: 1
-    border.color: Appearance.colors.colLayer0Border
-
-    Connections {
-        target: GlobalStates
-        function onOverviewOpenChanged() {
-            if (!GlobalStates.overviewOpen) root.showAll = false;
-        }
-    }
+    border.color: colBorder
 
     ColumnLayout {
         id: content
         anchors {
             fill: parent
-            margins: 16
+            margins: 18
         }
-        spacing: 10
+        spacing: 8
 
         RowLayout { // Header
             Layout.fillWidth: true
-            Layout.leftMargin: 6
+            Layout.leftMargin: 8
+            Layout.rightMargin: 8
             StyledText {
                 Layout.fillWidth: true
-                text: root.showAll ? Translation.tr("All applications") : Translation.tr("Applications")
+                text: root.pages[pageView.currentIndex]?.title ?? ""
                 font.pixelSize: Appearance.font.pixelSize.normal
                 color: Appearance.colors.colOnLayer0
             }
-            RippleButton {
-                implicitHeight: 28
-                implicitWidth: headerButtonRow.implicitWidth + 20
-                buttonRadius: height / 2
-                colBackground: ColorUtils.transparentize(Appearance.m3colors.m3surfaceContainerHighest, 0.3)
-                onClicked: root.showAll = !root.showAll
-                contentItem: Row {
-                    id: headerButtonRow
-                    anchors.centerIn: parent
-                    spacing: 2
-                    StyledText {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: root.showAll ? Translation.tr("Favourites") : Translation.tr("All apps")
-                        font.pixelSize: Appearance.font.pixelSize.smaller
-                        color: Appearance.colors.colOnLayer0
-                    }
-                    MaterialSymbol {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: root.showAll ? "expand_less" : "chevron_right"
-                        iconSize: Appearance.font.pixelSize.normal
-                        color: Appearance.colors.colOnLayer0
-                    }
-                }
+            StyledText {
+                visible: pageView.currentIndex > 0
+                text: Translation.tr("%1 of %2").arg(pageView.currentIndex).arg(pageView.count - 1)
+                font.pixelSize: Appearance.font.pixelSize.smaller
+                color: Appearance.colors.colSubtext
             }
         }
 
-        GridView {
-            id: grid
+        ListView { // Pages
+            id: pageView
             Layout.fillWidth: true
-            implicitHeight: root.showAll ? root.cellHeight * 4.5 : Math.max(1, Math.ceil(count / root.columns)) * root.cellHeight
-            cellWidth: width / root.columns
-            cellHeight: root.cellHeight
-            clip: true
+            implicitHeight: root.rows * root.cellHeight
+            orientation: ListView.Horizontal
+            snapMode: ListView.SnapOneItem
+            highlightRangeMode: ListView.StrictlyEnforceRange
+            highlightMoveDuration: 280
             boundsBehavior: Flickable.StopAtBounds
-            interactive: root.showAll
-            model: root.showAll ? root.allApps : root.favourites
-            onModelChanged: positionViewAtBeginning()
+            clip: true
+            model: root.pages
 
-            delegate: Item {
-                id: appCell
+            delegate: Grid {
+                id: page
                 required property var modelData
-                width: grid.cellWidth
-                height: grid.cellHeight
+                width: pageView.width
+                height: pageView.height
+                columns: root.columns
 
-                RippleButton {
-                    anchors {
-                        fill: parent
-                        margins: 3
-                    }
-                    buttonRadius: Appearance.rounding.normal
-                    colBackground: "transparent"
-                    colBackgroundHover: ColorUtils.transparentize(Appearance.m3colors.m3surfaceContainerHighest, 0.4)
-                    onClicked: {
-                        GlobalStates.overviewOpen = false;
-                        appCell.modelData.execute();
-                    }
-                    contentItem: ColumnLayout {
-                        anchors.fill: parent
-                        anchors.topMargin: 10
-                        anchors.bottomMargin: 4
-                        spacing: 6
-                        IconImage {
-                            Layout.alignment: Qt.AlignHCenter
-                            implicitSize: 44
-                            source: Quickshell.iconPath(appCell.modelData.icon, "application-x-executable")
+                Repeater {
+                    model: page.modelData.apps
+                    delegate: RippleButton {
+                        id: appButton
+                        required property var modelData
+                        width: pageView.width / root.columns
+                        height: root.cellHeight
+                        buttonRadius: Appearance.rounding.normal
+                        colBackground: "transparent"
+                        colBackgroundHover: root.colHover
+                        onClicked: {
+                            GlobalStates.overviewOpen = false;
+                            appButton.modelData.execute();
                         }
-                        StyledText {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            Layout.leftMargin: 4
-                            Layout.rightMargin: 4
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignTop
-                            text: appCell.modelData.name
-                            wrapMode: Text.Wrap
-                            maximumLineCount: 2
-                            elide: Text.ElideRight
-                            font.pixelSize: Appearance.font.pixelSize.smaller
-                            color: Appearance.colors.colOnLayer0
+                        contentItem: ColumnLayout {
+                            anchors.fill: parent
+                            anchors.topMargin: 12
+                            anchors.bottomMargin: 4
+                            spacing: 7
+                            IconImage {
+                                Layout.alignment: Qt.AlignHCenter
+                                implicitSize: 46
+                                source: Quickshell.iconPath(appButton.modelData.icon, "application-x-executable")
+                            }
+                            StyledText {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                Layout.leftMargin: 4
+                                Layout.rightMargin: 4
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignTop
+                                text: appButton.modelData.name
+                                wrapMode: Text.Wrap
+                                maximumLineCount: 2
+                                elide: Text.ElideRight
+                                font.pixelSize: Appearance.font.pixelSize.smaller
+                                color: Appearance.colors.colOnLayer0
+                            }
                         }
-                    }
-                    StyledToolTip {
-                        text: appCell.modelData.comment || appCell.modelData.name
+                        StyledToolTip {
+                            text: appButton.modelData.comment || appButton.modelData.name
+                        }
                     }
                 }
             }
 
-            ScrollBar.vertical: StyledScrollBar {
-                policy: root.showAll ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
+            // Mouse wheel / touchpad: one page per notch or swipe
+            WheelHandler {
+                property real acc: 0
+                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                onWheel: event => {
+                    const d = Math.abs(event.angleDelta.x) > Math.abs(event.angleDelta.y) ? event.angleDelta.x : event.angleDelta.y;
+                    acc += d;
+                    if (Math.abs(acc) >= 120 && !flipCooldown.running) {
+                        root.goToPage(pageView.currentIndex + (acc < 0 ? 1 : -1));
+                        flipCooldown.start();
+                        acc = 0;
+                    }
+                }
+            }
+            Timer {
+                id: flipCooldown
+                interval: 300
+            }
+        }
+
+        Row { // Page dots
+            Layout.alignment: Qt.AlignHCenter
+            Layout.topMargin: 4
+            Layout.bottomMargin: 6
+            spacing: 2
+            Repeater {
+                model: pageView.count
+                delegate: Item {
+                    id: dot
+                    required property int index
+                    width: 16
+                    height: 16
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 7
+                        height: 7
+                        radius: 3.5
+                        color: ColorUtils.transparentize(Appearance.colors.colOnLayer0, dot.index === pageView.currentIndex ? 0.1 : (dotMouse.containsMouse ? 0.5 : 0.75))
+                        Behavior on color {
+                            animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
+                        }
+                    }
+                    MouseArea {
+                        id: dotMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.goToPage(dot.index)
+                    }
+                }
             }
         }
 
         Rectangle { // Separator
             Layout.fillWidth: true
             implicitHeight: 1
-            color: Appearance.colors.colLayer0Border
+            color: root.colBorder
         }
 
         RowLayout { // Quick actions
             Layout.fillWidth: true
+            Layout.topMargin: 4
             spacing: 0
             Repeater {
                 model: [
                     { icon: "calculate", label: Translation.tr("Calculator"), action: () => root.searchRequested(Config.options.search.prefix.math) },
-                    { icon: "folder_open", label: Translation.tr("Files"), action: () => { GlobalStates.overviewOpen = false; Quickshell.execDetached(["xdg-open", Directories.home.replace(/^file:\/\//, "")]); } },
+                    { icon: "folder_open", label: Translation.tr("Files"), action: () => { GlobalStates.overviewOpen = false; Quickshell.execDetached(["xdg-open", FileUtils.trimFileProtocol(Directories.home)]); } },
                     { icon: "content_paste", label: Translation.tr("Clipboard"), action: () => root.searchRequested(Config.options.search.prefix.clipboard) },
                     { icon: "mood", label: Translation.tr("Emoji"), action: () => root.searchRequested(Config.options.search.prefix.emojis) },
                     { icon: "power_settings_new", label: Translation.tr("Power"), action: () => { GlobalStates.overviewOpen = false; GlobalStates.sessionOpen = true; } },
@@ -217,7 +259,7 @@ Rectangle {
                         implicitWidth: actionRow.implicitWidth + 24
                         buttonRadius: height / 2
                         colBackground: "transparent"
-                        colBackgroundHover: ColorUtils.transparentize(Appearance.m3colors.m3surfaceContainerHighest, 0.4)
+                        colBackgroundHover: root.colHover
                         onClicked: actionCell.modelData.action()
                         contentItem: Row {
                             id: actionRow

@@ -26,9 +26,11 @@ Rectangle {
     readonly property real thumbHeight: Math.round(thumbWidth * (monitor?.height ?? 9) / (monitor?.width ?? 16))
     readonly property real cellPadding: 5
 
-    readonly property color colPanel: ColorUtils.transparentize(Appearance.m3colors.m3surfaceContainerLow, 0.12)
-    readonly property color colCell: ColorUtils.transparentize(Appearance.m3colors.m3surfaceContainerHigh, 0.35)
-    readonly property color colCellHover: ColorUtils.transparentize(Appearance.m3colors.m3surfaceContainerHighest, 0.15)
+    // Frosted glass over the blurred backdrop, tinted by the wallpaper palette
+    readonly property color colPanel: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.93)
+    readonly property color colBorder: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.88)
+    readonly property color colCell: "transparent"
+    readonly property color colCellHover: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.92)
 
     function focusWorkspace(ws) {
         GlobalStates.overviewOpen = false;
@@ -49,7 +51,7 @@ Rectangle {
     radius: height / 2
     color: colPanel
     border.width: 1
-    border.color: Appearance.colors.colLayer0Border
+    border.color: colBorder
 
     Row {
         id: row
@@ -68,9 +70,9 @@ Rectangle {
                 implicitWidth: cellRow.implicitWidth + root.cellPadding * 2
                 implicitHeight: root.thumbHeight + root.cellPadding * 2
                 radius: Appearance.rounding.small + root.cellPadding
-                color: active ? root.colCellHover : (cellMouse.containsMouse ? root.colCellHover : root.colCell)
+                color: cellMouse.containsMouse ? root.colCellHover : root.colCell
                 border.width: active ? 1.5 : 0
-                border.color: Appearance.colors.colPrimary
+                border.color: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.25)
                 Behavior on color {
                     animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
                 }
@@ -93,7 +95,7 @@ Rectangle {
                         height: root.thumbHeight
                         radius: Appearance.rounding.small
                         color: Appearance.colors.colLayer1
-                        opacity: cell.active || cellMouse.containsMouse ? 1 : 0.8
+                        opacity: cell.active || cellMouse.containsMouse ? 1 : 0.7
 
                         Image {
                             anchors.fill: parent
