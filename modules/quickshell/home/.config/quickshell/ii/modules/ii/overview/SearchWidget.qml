@@ -21,6 +21,8 @@ Item { // Wrapper
 
     property string searchingText: LauncherSearch.query
     property bool showResults: searchingText != ""
+    // rice: frosted glass over the launcher backdrop; solid (end-4's look) when shown alone (Super+V)
+    property bool glass: true
     implicitWidth: searchWidgetContent.implicitWidth + Appearance.sizes.elevationMargin * 2
     implicitHeight: searchWidgetContent.implicitHeight + searchBar.verticalPadding * 2 + Appearance.sizes.elevationMargin * 2
 
@@ -109,8 +111,8 @@ Item { // Wrapper
         implicitHeight: columnLayout.implicitHeight
         radius: searchBar.height / 2 + searchBar.verticalPadding
         // Frosted glass like the rest of the launcher (rice)
-        color: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.91)
-        border.width: 1
+        color: root.glass ? ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.91) : Appearance.colors.colBackgroundSurfaceContainer
+        border.width: root.glass ? 1 : 0
         border.color: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.88)
 
         Behavior on implicitHeight {
@@ -145,7 +147,7 @@ Item { // Wrapper
                 Layout.rightMargin: 4
                 Layout.topMargin: verticalPadding
                 Layout.bottomMargin: verticalPadding
-                searchInput.colBackground: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.94)
+                searchInput.colBackground: root.glass ? ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.94) : Appearance.colors.colLayer1
                 Synchronizer on searchingText {
                     property alias source: root.searchingText
                 }

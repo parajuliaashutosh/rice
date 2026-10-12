@@ -22,9 +22,9 @@ Rectangle {
     readonly property int group: Math.floor((activeWorkspace - 1) / count)
     readonly property string wallpaper: Config.options.background.wallpaperPath
 
-    readonly property real thumbWidth: 76
+    readonly property real thumbWidth: 104
     readonly property real thumbHeight: Math.round(thumbWidth * (monitor?.height ?? 9) / (monitor?.width ?? 16))
-    readonly property real cellPadding: 5
+    readonly property real cellPadding: 6
 
     // Frosted glass over the blurred backdrop, tinted by the wallpaper palette
     readonly property color colPanel: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.93)
@@ -46,9 +46,9 @@ Rectangle {
         return root.activeWorkspace;
     }
 
-    implicitWidth: row.implicitWidth + 12
+    implicitWidth: row.implicitWidth + 16
     implicitHeight: row.implicitHeight + 12
-    radius: height / 2
+    radius: Appearance.rounding.large + 6
     color: colPanel
     border.width: 1
     border.color: colBorder
@@ -60,80 +60,93 @@ Rectangle {
 
         Repeater {
             model: root.count
-            delegate: Rectangle {
+            delegate: Item {
                 id: cell
                 required property int index
                 readonly property int ws: root.group * root.count + index + 1
                 readonly property bool active: ws === root.activeWorkspace
                 readonly property var windows: HyprlandData.windowList.filter(w => w.workspace.id === cell.ws)
 
-                implicitWidth: cellRow.implicitWidth + root.cellPadding * 2
-                implicitHeight: root.thumbHeight + root.cellPadding * 2
-                radius: Appearance.rounding.small + root.cellPadding
-                color: cellMouse.containsMouse ? root.colCellHover : root.colCell
-                border.width: active ? 1.5 : 0
-                border.color: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.25)
-                Behavior on color {
-                    animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
-                }
+                implicitWidth: root.thumbWidth + root.cellPadding * 2
+                implicitHeight: cellColumn.implicitHeight + root.cellPadding * 2
 
-                Row {
-                    id: cellRow
+                Column {
+                    id: cellColumn
                     anchors.centerIn: parent
-                    spacing: 7
+                    spacing: 6
 
-                    StyledText {
-                        anchors.verticalCenter: parent.verticalCenter
-                        leftPadding: 3
-                        text: cell.ws
-                        font.pixelSize: Appearance.font.pixelSize.small
-                        color: cell.active ? Appearance.colors.colOnLayer0 : Appearance.colors.colSubtext
-                    }
-
-                    ClippingRectangle {
+                    Item {
                         width: root.thumbWidth
                         height: root.thumbHeight
-                        radius: Appearance.rounding.small
-                        color: Appearance.colors.colLayer1
-                        opacity: cell.active || cellMouse.containsMouse ? 1 : 0.7
 
-                        Image {
+                        ClippingRectangle {
+                            id: thumb
                             anchors.fill: parent
-                            source: root.wallpaper ? `file://${root.wallpaper}` : ""
-                            sourceSize.width: root.thumbWidth * 2
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true
-                            cache: true
-                        }
+                            radius: Appearance.rounding.small
+                            color: Appearance.colors.colLayer1
+                            opacity: cell.active || cellMouse.containsMouse ? 1 : 0.75
+                            Behavior on opacity {
+                                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+                            }
 
-                        // Windows, drawn to scale
-                        Repeater {
-                            model: cell.windows
-                            delegate: Rectangle {
-                                id: win
-                                required property var modelData
-                                readonly property var mon: HyprlandData.monitors.find(m => m.id === win.modelData.monitor) ?? root.monitorData
-                                readonly property real sx: root.thumbWidth / ((mon?.width ?? 1920) / (mon?.scale ?? 1))
-                                readonly property real sy: root.thumbHeight / ((mon?.height ?? 1080) / (mon?.scale ?? 1))
-                                x: (modelData.at[0] - (mon?.x ?? 0)) * sx
-                                y: (modelData.at[1] - (mon?.y ?? 0)) * sy
-                                width: Math.max(4, modelData.size[0] * sx)
-                                height: Math.max(4, modelData.size[1] * sy)
-                                radius: 2
-                                color: ColorUtils.transparentize(Appearance.m3colors.m3surfaceContainer, 0.2)
-                                border.width: 0.5
-                                border.color: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.8)
+                            Image {
+                                anchors.fill: parent
+                                source: root.wallpaper ? `file://${root.wallpaper}` : ""
+                                sourceSize.width: root.thumbWidth * 2
+                                fillMode: Image.PreserveAspectCrop
+                                asynchronous: true
+                                cache: true
+                            }
 
-                                IconImage {
-                                    anchors.centerIn: parent
-                                    implicitSize: Math.min(14, parent.width - 2, parent.height - 2)
-                                    visible: implicitSize >= 6
-                                    source: Quickshell.iconPath(AppSearch.guessIcon(win.modelData.class), "image-missing")
+                            // Windows, drawn to scale
+                            Repeater {
+                                model: cell.windows
+                                delegate: Rectangle {
+                                    id: win
+                                    required property var modelData
+                                    readonly property var mon: HyprlandData.monitors.find(m => m.id === win.modelData.monitor) ?? root.monitorData
+                                    readonly property real sx: root.thumbWidth / ((mon?.width ?? 1920) / (mon?.scale ?? 1))
+                                    readonly property real sy: root.thumbHeight / ((mon?.height ?? 1080) / (mon?.scale ?? 1))
+                                    x: (modelData.at[0] - (mon?.x ?? 0)) * sx
+                                    y: (modelData.at[1] - (mon?.y ?? 0)) * sy
+                                    width: Math.max(4, modelData.size[0] * sx)
+                                    height: Math.max(4, modelData.size[1] * sy)
+                                    radius: 3
+                                    color: ColorUtils.transparentize(Appearance.m3colors.m3surfaceContainer, 0.2)
+                                    border.width: 0.5
+                                    border.color: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.8)
+
+                                    IconImage {
+                                        anchors.centerIn: parent
+                                        implicitSize: Math.min(18, parent.width - 2, parent.height - 2)
+                                        visible: implicitSize >= 6
+                                        source: Quickshell.iconPath(AppSearch.guessIcon(win.modelData.class), "image-missing")
+                                    }
                                 }
                             }
                         }
+
+                        Rectangle { // Current workspace: a thin ring around the thumbnail only
+                            anchors {
+                                fill: parent
+                                margins: -3
+                            }
+                            radius: thumb.radius + 3
+                            color: "transparent"
+                            border.width: 1.5
+                            border.color: ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.2)
+                            opacity: cell.active ? 1 : 0
+                        }
+                    }
+
+                    StyledText {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: cell.ws
+                        font.pixelSize: Appearance.font.pixelSize.smaller
+                        color: cell.active ? Appearance.colors.colOnLayer0 : Appearance.colors.colSubtext
                     }
                 }
+
 
                 MouseArea {
                     id: cellMouse
@@ -147,7 +160,7 @@ Rectangle {
 
         RippleButton { // New workspace
             anchors.verticalCenter: parent.verticalCenter
-            implicitWidth: root.thumbHeight + root.cellPadding * 2
+            implicitWidth: 40
             implicitHeight: implicitWidth
             buttonRadius: implicitWidth / 2
             colBackground: root.colCell

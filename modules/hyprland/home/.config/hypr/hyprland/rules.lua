@@ -142,8 +142,7 @@ hl.layer_rule({ match = { namespace = "quickshell:notificationPopup" }, animatio
 hl.layer_rule({ match = { namespace = "quickshell:overlay" }, no_anim = true})
 hl.layer_rule({ match = { namespace = "quickshell:overlay" }, ignore_alpha = 1})
 hl.layer_rule({ match = { namespace = "quickshell:overview" }, no_anim = true})
--- Launcher: blur everything behind its translucent full-screen backdrop, windows included
-hl.layer_rule({ match = { namespace = "quickshell:overview" }, xray = false})
+-- Launcher: its translucent backdrop shows the blurred wallpaper (xray), not the windows
 hl.layer_rule({ match = { namespace = "quickshell:overview" }, ignore_alpha = 0.1})
 hl.layer_rule({ match = { namespace = "quickshell:osk" }, animation = "slide bottom"})
 hl.layer_rule({ match = { namespace = "quickshell:polkit" }, no_anim = true})

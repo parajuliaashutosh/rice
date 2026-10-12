@@ -27,8 +27,12 @@ Scope {
         WlrLayershell.layer: WlrLayer.Top
         WlrLayershell.keyboardFocus: GlobalStates.overviewOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
         color: "transparent"
-        // Cover the whole screen (bar included) so the blurred backdrop is edge to edge
-        exclusionMode: ExclusionMode.Ignore
+        // Super+V / Super+. open just the search box with results, like end-4's original
+        readonly property bool searchOnly: overviewScope.dontAutoCancelSearch
+
+        mask: Region {
+            item: !GlobalStates.overviewOpen ? null : (panelWindow.searchOnly ? columnLayout : backdrop)
+        }
 
         anchors {
             top: true
@@ -71,8 +75,8 @@ Scope {
         Rectangle {
             id: backdrop
             anchors.fill: parent
-            visible: GlobalStates.overviewOpen
-            color: ColorUtils.transparentize(Appearance.m3colors.m3background, 0.5)
+            visible: GlobalStates.overviewOpen && !panelWindow.searchOnly
+            color: ColorUtils.transparentize(Appearance.m3colors.m3background, 0.35)
             opacity: GlobalStates.overviewOpen ? 1 : 0
             Behavior on opacity {
                 animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
@@ -90,9 +94,9 @@ Scope {
             anchors {
                 horizontalCenter: parent.horizontalCenter
                 top: parent.top
-                topMargin: Math.max(40, (panelWindow.height - 690) / 3) // a little above centre
+                topMargin: panelWindow.searchOnly ? 0 : Math.max(32, (panelWindow.height - 720) / 3) // a little above centre
             }
-            spacing: 22
+            spacing: panelWindow.searchOnly ? 0 : 22
 
             Keys.onPressed: event => {
                 if (event.key === Qt.Key_Escape) {
@@ -103,7 +107,7 @@ Scope {
             Loader {
                 id: stripLoader
                 anchors.horizontalCenter: parent.horizontalCenter
-                active: GlobalStates.overviewOpen && (Config?.options.overview.enable ?? true)
+                active: GlobalStates.overviewOpen && !panelWindow.searchOnly && (Config?.options.overview.enable ?? true)
                 sourceComponent: WorkspaceStrip {
                     screen: panelWindow.screen
                 }
@@ -112,6 +116,7 @@ Scope {
             SearchWidget {
                 id: searchWidget
                 anchors.horizontalCenter: parent.horizontalCenter
+                glass: !panelWindow.searchOnly
                 Synchronizer on searchingText {
                     property alias source: panelWindow.searchingText
                 }
@@ -120,7 +125,7 @@ Scope {
             Loader {
                 id: appGridLoader
                 anchors.horizontalCenter: parent.horizontalCenter
-                active: GlobalStates.overviewOpen
+                active: GlobalStates.overviewOpen && !panelWindow.searchOnly
                 visible: panelWindow.searchingText == ""
                 sourceComponent: AppGrid {
                     width: Math.min(1100, panelWindow.width - 80)
