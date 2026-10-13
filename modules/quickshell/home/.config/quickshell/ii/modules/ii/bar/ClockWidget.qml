@@ -34,7 +34,7 @@ Item {
             visible: root.showDate
             font.pixelSize: Appearance.font.pixelSize.small
             color: Appearance.colors.colOnLayer1
-            text: Qt.locale().toString(DateTime.clock.date, "yyyy MMM dd").toUpperCase()
+            text: Qt.locale().toString(DateTime.clock.date, "ddd, yyyy MMM dd").toUpperCase()
         }
 
         Dot { visible: root.showDate && NepaliDate.text !== "" }
