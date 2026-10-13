@@ -15,6 +15,7 @@ APPS=(
   "slack|Slack"
   "obs|OBS Studio"
   "libreoffice|LibreOffice (Writer, Calc, Impress)"
+  "nvim|Neovim (with my LazyVim config)"
 )
 
 if [ "${SKIP_DEPS:-0}" = "1" ]; then
@@ -36,6 +37,7 @@ app_installed() {
   slack) have slack || flatpak info com.slack.Slack >/dev/null 2>&1 ;;
   obs) have obs || flatpak info com.obsproject.Studio >/dev/null 2>&1 ;;
   libreoffice) have libreoffice || have soffice ;;
+  nvim) have nvim && [ -L "$HOME/.config/nvim/init.lua" ] ;;
   *) return 1 ;;
   esac
 }
@@ -229,6 +231,17 @@ install_libreoffice() {
   pacman) pkg_install libreoffice-fresh ;;
   *) pkg_install libreoffice-writer libreoffice-calc libreoffice-impress ;;
   esac
+}
+
+# Neovim plus what LazyVim needs (git for lazy.nvim, a C compiler for treesitter, ripgrep/fd
+# for pickers), then the config from apps/nvim. Plugins install on first launch.
+install_nvim() {
+  pkg_install neovim git gcc make unzip ripgrep
+  case "$PM" in
+  dnf) pkg_install fd-find ;;
+  *) pkg_install fd ;;
+  esac
+  link_tree "$RICE_DIR/modules/apps/nvim"
 }
 
 # ── install ──────────────────────────────────────────────────────────────────

@@ -53,11 +53,13 @@ rice_check() {
     fail "kitty config not linked" "./install.sh kitty"
   fi
 
-  # nvim
-  if linked "$HOME/.config/nvim/init.lua"; then
-    pass "nvim config linked (LazyVim)"
-  else
-    fail "nvim config not linked" "./install.sh nvim"
+  # nvim (picked in the apps module)
+  if have nvim; then
+    if linked "$HOME/.config/nvim/init.lua"; then
+      pass "nvim config linked (LazyVim)"
+    else
+      fail "nvim config not linked" "RICE_APPS=nvim ./install.sh apps"
+    fi
   fi
 
   # quickshell (bar + lock)
