@@ -53,6 +53,13 @@ rice_check() {
     fail "kitty config not linked" "./install.sh kitty"
   fi
 
+  # nvim
+  if linked "$HOME/.config/nvim/init.lua"; then
+    pass "nvim config linked (LazyVim)"
+  else
+    fail "nvim config not linked" "./install.sh nvim"
+  fi
+
   # quickshell (bar + lock)
   local ii="$HOME/.config/quickshell/ii" f missing=()
   if [ ! -f "$ii/shell.qml" ]; then
