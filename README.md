@@ -124,7 +124,7 @@ use it against machines you're authorised to test.
 | user gems | wpscan |
 | GitHub release binary | feroxbuster |
 | built from source | crunch, nbtscan |
-| asked first | Metasploit, SecLists (~1.5 GB), Burp Suite Community, ZAP |
+| asked first | Metasploit, SecLists (~1.5 GB, /usr/share/seclists), Burp Suite Community, ZAP |
 
 Anything not from the distro lives under `~/.local` (launchers in
 `~/.local/bin`), and re-running updates it. A tool that fails to install is
