@@ -28,6 +28,8 @@ Rectangle {
     readonly property real spacing: 12
     readonly property real thumbWidth: Math.floor((width - padding * 2 - spacing * (count - 1)) / count)
     readonly property real thumbHeight: Math.round(thumbWidth * (monitor?.height ?? 9) / (monitor?.width ?? 16))
+    // Hyprland gaps_out (5) + border_size (1): trimmed with the bar's reserved space so windows fill the thumbnail
+    readonly property real edgeInset: 6
 
     // Hyprland address -> Wayland toplevel, for the live previews
     readonly property var toplevelByAddress: {
@@ -88,10 +90,16 @@ Rectangle {
                                 id: win
                                 required property var modelData
                                 readonly property var mon: HyprlandData.monitors.find(m => m.id === win.modelData.monitor) ?? root.monitorData
-                                readonly property real sx: root.thumbWidth / ((mon?.width ?? 1920) / (mon?.scale ?? 1))
-                                readonly property real sy: root.thumbHeight / ((mon?.height ?? 1080) / (mon?.scale ?? 1))
-                                x: (modelData.at[0] - (mon?.x ?? 0)) * sx
-                                y: (modelData.at[1] - (mon?.y ?? 0)) * sy
+                                // Usable area: monitor minus reserved space (bar) and the outer gap
+                                readonly property var res: mon?.reserved ?? [0, 0, 0, 0]
+                                readonly property real areaX: (mon?.x ?? 0) + res[0] + root.edgeInset
+                                readonly property real areaY: (mon?.y ?? 0) + res[1] + root.edgeInset
+                                readonly property real areaW: (mon?.width ?? 1920) / (mon?.scale ?? 1) - res[0] - res[2] - root.edgeInset * 2
+                                readonly property real areaH: (mon?.height ?? 1080) / (mon?.scale ?? 1) - res[1] - res[3] - root.edgeInset * 2
+                                readonly property real sx: root.thumbWidth / areaW
+                                readonly property real sy: root.thumbHeight / areaH
+                                x: (modelData.at[0] - areaX) * sx
+                                y: (modelData.at[1] - areaY) * sy
                                 z: modelData.floating ? 1 : 0
                                 width: Math.max(2, modelData.size[0] * sx)
                                 height: Math.max(2, modelData.size[1] * sy)
@@ -109,9 +117,9 @@ Rectangle {
                     Rectangle { // Ring: current workspace (solid) or hover (faint), around the thumbnail only
                         anchors {
                             fill: parent
-                            margins: -3
+                            margins: -border.width // flush with the thumbnail, no gap
                         }
-                        radius: thumb.radius + 3
+                        radius: thumb.radius + border.width
                         color: "transparent"
                         border.width: 2
                         border.color: cell.active ? Appearance.colors.colOnLayer0 : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.7)
