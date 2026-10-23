@@ -24,7 +24,18 @@ Scope {
         property string searchingText: ""
         readonly property HyprlandMonitor monitor: Hyprland.monitorFor(panelWindow.screen)
         property bool monitorIsFocused: (Hyprland.focusedMonitor?.id == monitor?.id)
-        visible: GlobalStates.overviewOpen
+        // Follows overviewOpen, but set from its handler below so closing can be delayed
+        property bool shown: false
+        visible: shown
+
+        // Closing the compact box: Hyprland fades out the last frame it got, and the blur
+        // behind the box outlasts the box (a blurred-wallpaper rectangle). Stay mapped a few
+        // frames with the content already hidden, so that last frame is empty.
+        Timer {
+            id: compactUnmapDelay
+            interval: 50
+            onTriggered: if (!GlobalStates.overviewOpen) panelWindow.shown = false
+        }
 
         WlrLayershell.namespace: "quickshell:overview"
         WlrLayershell.layer: WlrLayer.Top
@@ -74,11 +85,15 @@ Scope {
             target: GlobalStates
             function onOverviewOpenChanged() {
                 if (!GlobalStates.overviewOpen) {
+                    if (overviewScope.compact) compactUnmapDelay.restart();
+                    else panelWindow.shown = false;
                     searchWidget.disableExpandAnimation();
                     overviewScope.dontAutoCancelSearch = false;
                     overviewScope.compact = false;
                     GlobalFocusGrab.dismiss();
                 } else {
+                    compactUnmapDelay.stop();
+                    panelWindow.shown = true;
                     if (!overviewScope.dontAutoCancelSearch) {
                         overviewScope.compact = false;
                         searchWidget.cancelSearch();
@@ -151,7 +166,9 @@ Scope {
 
             // Opening: the content eases up and in while Hyprland fades the backdrop (rules.lua)
             property real reveal: 1
-            opacity: reveal
+            // Compact box: no fade. Hyprland blurs behind it at full strength as soon as it's
+            // barely visible, so a fading box flashes as a blank blurred-wallpaper rectangle
+            opacity: overviewScope.compact ? 1 : reveal
             scale: 0.965 + 0.035 * reveal
             // Compact mode lifts the search box to just under the bar (the hidden strip goes
             // off the top); expanding slides it back down into place
