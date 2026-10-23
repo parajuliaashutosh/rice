@@ -102,13 +102,56 @@ MouseArea {
         color: "#0c0c0e"
     }
 
-    Image {
+    // Two images taking turns: a new wallpaper (wallpaper-rotate.sh changes it on lock) loads
+    // in the back one, then slides down from the top and pushes the old one out, like a
+    // workspace switch, instead of blinking in place
+    Item {
+        id: wallpaperStack
         anchors.fill: parent
-        source: Config.options.background.wallpaperPath
+        clip: true
+        readonly property string target: Config.options.background.wallpaperPath
+        property Item front: wallA
+        readonly property Item back: front === wallA ? wallB : wallA
+
+        Component.onCompleted: wallA.path = target
+        onTargetChanged: {
+            if (target === front.path) return;
+            slide.complete();
+            back.y = -height;
+            back.path = target;
+            if (back.status === Image.Ready) startSlide();
+        }
+        function startSlide() {
+            slideIn.target = back;
+            slideOut.target = front;
+            slide.restart();
+        }
+
+        ParallelAnimation {
+            id: slide
+            NumberAnimation { id: slideIn; property: "y"; to: 0; duration: 700; easing.type: Easing.OutCubic }
+            NumberAnimation { id: slideOut; property: "y"; to: wallpaperStack.height; duration: 700; easing.type: Easing.OutCubic }
+            onFinished: wallpaperStack.front = wallpaperStack.back
+        }
+
+        WallpaperImage { id: wallA }
+        WallpaperImage { id: wallB; y: -wallpaperStack.height }
+    }
+
+    component WallpaperImage: Image {
+        id: wallpaperImage
+        property string path
+        width: wallpaperStack.width
+        height: wallpaperStack.height
+        source: path
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
         sourceSize.width: root.width
         sourceSize.height: root.height
+        onStatusChanged: {
+            if (status === Image.Ready && wallpaperImage === wallpaperStack.back && path === wallpaperStack.target)
+                wallpaperStack.startSlide();
+        }
     }
 
     Rectangle { // Overall dim

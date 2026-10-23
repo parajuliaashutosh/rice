@@ -1,0 +1,6 @@
+# Wallpaper rotation: one wallhaven link or id per line. scripts/wallpaper-rotate.sh
+# downloads them to ~/Pictures/Wallpapers/rotation and moves to the next one on each lock.
+https://wallhaven.cc/w/w53vkq
+https://wallhaven.cc/w/gw1mxd
+https://wallhaven.cc/w/d8vvlo
+https://wallhaven.cc/w/9oke91
