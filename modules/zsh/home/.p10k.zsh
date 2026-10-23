@@ -1,6 +1,6 @@
 # ─────────────────────────────────────────────────────────────────────────────
 #  Tokyo Night — Powerlevel10k theme
-#  Night greys for structure, blue accent; colour only where it means something:
+#  Neutral greys for structure (kitty bg #151515), blue accent; colour only where it means something:
 #  green = ok/clean · yellow = changed/slow · red = error/prod
 #  Layout:  dir ── git          ⏱ time on the right
 # ─────────────────────────────────────────────────────────────────────────────
@@ -16,11 +16,11 @@
   unset -m '(POWERLEVEL9K_*|DEFAULT_USER)~POWERLEVEL9K_GITSTATUS_DIR'
 
   # ── Palette ───────────────────────────────────────────────────────────────
-  local C_BG='#292e42'        # segment background
-  local C_BG_HI='#3b4261'     # directory / clock background
-  local C_FG='#c0caf5'        # normal text
-  local C_DIM='#737aa2'       # secondary text
-  local C_DARK='#1a1b26'      # text on bright backgrounds
+  local C_BG='#242424'        # segment background
+  local C_BG_HI='#303030'     # directory / clock background
+  local C_FG='#d4d4d4'        # normal text
+  local C_DIM='#8c8c8c'       # secondary text
+  local C_DARK='#151515'      # text on bright backgrounds
   local C_BLUE='#7aa2f7'      # accent
   local C_CYAN='#7dcfff'      # kube context
   local C_GREEN='#9ece6a'     # ok / clean
