@@ -85,7 +85,19 @@ Scope {
                     }
                     GlobalFocusGrab.addDismissable(panelWindow);
                     revealAnim.restart();
+                    revealGuard.restart();
                 }
+            }
+        }
+
+        // Animations tick on frames; if Hyprland stops sending them the content stays at
+        // opacity 0 over the backdrop (a blank blur). Timers don't need frames: finish them.
+        Timer {
+            id: revealGuard
+            interval: 600
+            onTriggered: {
+                revealAnim.complete();
+                expandAnim.complete();
             }
         }
 
@@ -118,8 +130,9 @@ Scope {
                 fill: parent
                 margins: 5
             }
-            // No fade: everything appears at once, so nothing flickers in while it settles
-            visible: GlobalStates.overviewOpen && panelWindow.expand > 0
+            // No fade: everything appears at once, so nothing flickers in while it settles.
+            // Never in compact mode: Super+V / Super+. are just the box, no blurred wallpaper.
+            visible: GlobalStates.overviewOpen && !overviewScope.compact && panelWindow.expand > 0
             opacity: panelWindow.expand
             color: ColorUtils.transparentize(Appearance.m3colors.m3background, 0.35)
             radius: 18
