@@ -45,7 +45,9 @@ next() {
         [ "${files[$i]}" = "$current" ] && pick="${files[$(((i + 1) % ${#files[@]}))]}"
     done
     [ "$pick" = "$current" ] && return
-    "$switchwall" --image "$pick"
+    # 9 (our lock) closed: switchwall leaves a background job waiting on an "Upscale?"
+    # notification for small images, and it mustn't hold the lock while it waits
+    "$switchwall" --image "$pick" 9>&-
 }
 
 exec 9>"$runtime/wallpaper-rotate.lock"
