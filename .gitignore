@@ -4,3 +4,7 @@
 *.bak
 *.swp
 .DS_Store
+
+# Regenerated from the wallpaper on every change (wallpaper-rotate.sh, the picker)
+modules/hyprland/home/.config/hypr/hyprland/colors.lua
+modules/hyprland/home/.config/hypr/hyprlock/colors.conf

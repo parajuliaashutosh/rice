@@ -16,6 +16,7 @@ APPS=(
   "obs|OBS Studio"
   "libreoffice|LibreOffice (Writer, Calc, Impress)"
   "nvim|Neovim (with my LazyVim config)"
+  "ollama|Ollama (run local LLMs)"
 )
 
 if [ "${SKIP_DEPS:-0}" = "1" ]; then
@@ -38,6 +39,7 @@ app_installed() {
   obs) have obs || flatpak info com.obsproject.Studio >/dev/null 2>&1 ;;
   libreoffice) have libreoffice || have soffice ;;
   nvim) have nvim && [ -L "$HOME/.config/nvim/init.lua" ] ;;
+  ollama) have ollama ;;
   *) return 1 ;;
   esac
 }
@@ -118,10 +120,16 @@ flathub_install() {
 # ── one installer per app ────────────────────────────────────────────────────
 install_brave() {
   case "$PM" in
-  pacman) aur_install brave-bin ;;
+  pacman) aur_install brave-bin ;; # Brave's script doesn't cover Arch
   *)
-    add_rpm_repo brave-browser https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
-    pkg_install brave-browser
+    # Brave's own installer (handles the dnf/zypper repo setup itself).
+    if have brave-browser || have brave; then
+      skip "brave already installed"
+    elif [ "$DRY_RUN" = "1" ]; then
+      skip "would run Brave's installer: curl -fsS https://dl.brave.com/install.sh | sh"
+    else
+      curl -fsS https://dl.brave.com/install.sh | sh
+    fi
     ;;
   esac
 }
@@ -242,6 +250,37 @@ install_nvim() {
   *) pkg_install fd ;;
   esac
   link_tree "$RICE_DIR/modules/apps/nvim"
+}
+
+# Ollama — local LLM runner. Arch (extra) and openSUSE ship an official package; Fedora has none,
+# so there we use Ollama's own install script (it also creates the ollama user and systemd service).
+# Afterwards the service is enabled so `ollama run <model>` works without starting a server by hand.
+install_ollama() {
+  case "$PM" in
+  pacman) pkg_install ollama ;;
+  zypper) pkg_install ollama ;;
+  dnf)
+    if have ollama; then
+      skip "ollama already installed"
+    elif [ "$DRY_RUN" = "1" ]; then
+      skip "would run Ollama's installer: curl -fsSL https://ollama.com/install.sh | sh"
+    else
+      curl -fsSL https://ollama.com/install.sh | sh
+    fi
+    ;;
+  esac
+
+  have ollama || [ "$DRY_RUN" = "1" ] || { warn "ollama not installed — skipping service setup"; return 0; }
+  # The Fedora script already enables the service; the distro packages ship it stopped.
+  if systemctl list-unit-files ollama.service >/dev/null 2>&1; then
+    if systemctl is-enabled --quiet ollama 2>/dev/null && systemctl is-active --quiet ollama 2>/dev/null; then
+      skip "ollama service already enabled and running"
+    else
+      run $SUDO systemctl enable --now ollama
+    fi
+  else
+    skip "no ollama systemd service (it runs on demand)"
+  fi
 }
 
 # ── install ──────────────────────────────────────────────────────────────────

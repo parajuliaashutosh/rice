@@ -1,7 +1,7 @@
-# Terminal tuning — autosuggestion + syntax-highlight palette (Tokyo Night).
+# Terminal tuning — autosuggestion + syntax-highlight palette (Tokyo Night accents, neutral greys).
 
-# Autosuggestion ghost text — Tokyo Night comment grey
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#565f89'
+# Autosuggestion ghost text — neutral grey
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#5e5e5e'
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 
 # ── What you type is plain foreground ────────────────────────────────────────
@@ -10,7 +10,7 @@ ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 typeset -gA ZSH_HIGHLIGHT_STYLES
 
 # Anything the highlighter doesn't have a specific rule for.
-ZSH_HIGHLIGHT_STYLES[default]='fg=#c0caf5'
+ZSH_HIGHLIGHT_STYLES[default]='fg=#d4d4d4'
 
 for _hl_white in \
   command builtin function alias suffix-alias global-alias reserved-word \
@@ -27,20 +27,20 @@ for _hl_white in \
   command-substitution command-substitution-delimiter \
   arithmetic-expansion \
   ; do
-  ZSH_HIGHLIGHT_STYLES[$_hl_white]='fg=#c0caf5'
+  ZSH_HIGHLIGHT_STYLES[$_hl_white]='fg=#d4d4d4'
 done
 unset _hl_white
 
 # The two deliberate exceptions.
 ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=#f7768e,bold'   # typo / unknown command
-ZSH_HIGHLIGHT_STYLES[comment]='fg=#565f89'              # dim, it isn't executed
+ZSH_HIGHLIGHT_STYLES[comment]='fg=#5e5e5e'              # dim, it isn't executed
 
 # ── Terminal cursor: foreground ──────────────────────────────────────────────
 # OSC 12 sets the cursor colour (kitty, foot, alacritty, wezterm, xterm…).
 # Deferred to the first precmd so it never prints during p10k's instant prompt,
 # then unhooks itself — it only needs to run once per shell.
 _rice_cursor_color() {
-  printf '\e]12;#c0caf5\a'
+  printf '\e]12;#d4d4d4\a'
   add-zsh-hook -d precmd _rice_cursor_color
   unfunction _rice_cursor_color
 }

@@ -24,7 +24,18 @@ Scope {
         property string searchingText: ""
         readonly property HyprlandMonitor monitor: Hyprland.monitorFor(panelWindow.screen)
         property bool monitorIsFocused: (Hyprland.focusedMonitor?.id == monitor?.id)
-        visible: GlobalStates.overviewOpen
+        // Follows overviewOpen, but set from its handler below so closing can be delayed
+        property bool shown: false
+        visible: shown
+
+        // Closing the compact box: Hyprland fades out the last frame it got, and the blur
+        // behind the box outlasts the box (a blurred-wallpaper rectangle). Stay mapped a few
+        // frames with the content already hidden, so that last frame is empty.
+        Timer {
+            id: compactUnmapDelay
+            interval: 50
+            onTriggered: if (!GlobalStates.overviewOpen) panelWindow.shown = false
+        }
 
         WlrLayershell.namespace: "quickshell:overview"
         WlrLayershell.layer: WlrLayer.Top
@@ -74,18 +85,34 @@ Scope {
             target: GlobalStates
             function onOverviewOpenChanged() {
                 if (!GlobalStates.overviewOpen) {
+                    if (overviewScope.compact) compactUnmapDelay.restart();
+                    else panelWindow.shown = false;
                     searchWidget.disableExpandAnimation();
                     overviewScope.dontAutoCancelSearch = false;
                     overviewScope.compact = false;
                     GlobalFocusGrab.dismiss();
                 } else {
+                    compactUnmapDelay.stop();
+                    panelWindow.shown = true;
                     if (!overviewScope.dontAutoCancelSearch) {
                         overviewScope.compact = false;
                         searchWidget.cancelSearch();
                     }
                     GlobalFocusGrab.addDismissable(panelWindow);
                     revealAnim.restart();
+                    revealGuard.restart();
                 }
+            }
+        }
+
+        // Animations tick on frames; if Hyprland stops sending them the content stays at
+        // opacity 0 over the backdrop (a blank blur). Timers don't need frames: finish them.
+        Timer {
+            id: revealGuard
+            interval: 600
+            onTriggered: {
+                revealAnim.complete();
+                expandAnim.complete();
             }
         }
 
@@ -118,8 +145,9 @@ Scope {
                 fill: parent
                 margins: 5
             }
-            // No fade: everything appears at once, so nothing flickers in while it settles
-            visible: GlobalStates.overviewOpen && panelWindow.expand > 0
+            // No fade: everything appears at once, so nothing flickers in while it settles.
+            // Never in compact mode: Super+V / Super+. are just the box, no blurred wallpaper.
+            visible: GlobalStates.overviewOpen && !overviewScope.compact && panelWindow.expand > 0
             opacity: panelWindow.expand
             color: ColorUtils.transparentize(Appearance.m3colors.m3background, 0.35)
             radius: 18
@@ -138,7 +166,9 @@ Scope {
 
             // Opening: the content eases up and in while Hyprland fades the backdrop (rules.lua)
             property real reveal: 1
-            opacity: reveal
+            // Compact box: no fade. Hyprland blurs behind it at full strength as soon as it's
+            // barely visible, so a fading box flashes as a blank blurred-wallpaper rectangle
+            opacity: overviewScope.compact ? 1 : reveal
             scale: 0.965 + 0.035 * reveal
             // Compact mode lifts the search box to just under the bar (the hidden strip goes
             // off the top); expanding slides it back down into place

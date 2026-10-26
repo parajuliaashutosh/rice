@@ -23,6 +23,8 @@ fi
 link_tree "$MOD/home"
 
 # ── 3. settings (only the keys we care about; the rest of config.json is end-4's) ──
+# enableTerminal off: kitty keeps its own fixed palette, so a wallpaper change mustn't
+# write colors into every open terminal
 if [ ! -f "$CONFIG" ]; then
   warn "$CONFIG not found — start quickshell once, then rerun to apply bar settings"
 elif ! have jq; then
@@ -39,7 +41,8 @@ else
       | .bar.utilButtons.showKeyboardToggle = false
       | .bar.utilButtons.showScreenSnip = false
       | .background.widgets.clock.enable = false
-      | .lock.blur.enable = false' "$CONFIG" >"$tmp" && mv "$tmp" "$CONFIG"
+      | .lock.blur.enable = false
+      | .appearance.wallpaperTheming.enableTerminal = false' "$CONFIG" >"$tmp" && mv "$tmp" "$CONFIG"
   ok "bar settings applied to $CONFIG"
 fi
 
