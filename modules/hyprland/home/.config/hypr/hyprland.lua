@@ -15,7 +15,10 @@ end
 require("hyprland.execs")
 require("hyprland.general")
 require("hyprland.rules")
-require("hyprland.colors")
+-- Generated from the wallpaper by matugen; missing until the first wallpaper is set
+if is_file_exists(HOME .. "/.config/hypr/hyprland/colors.lua") then
+    require("hyprland.colors")
+end
 require("hyprland.keybinds")
 
 -- Custom configurations --

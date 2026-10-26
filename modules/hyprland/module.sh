@@ -34,8 +34,15 @@ have qs || warn "quickshell (qs) not found — shell keybinds (SUPER, SUPER+Tab,
 
 # ── 2. config ────────────────────────────────────────────────────────────────
 link_tree "$MOD/home"
+# colors.lua / hyprlock colors.conf used to be tracked and linked; now matugen writes them
+# in place. Links left over from before point at nothing and break the config, so drop them.
+for f in hypr/hyprland/colors.lua hypr/hyprlock/colors.conf; do
+  [ -L "$HOME/.config/$f" ] && [ ! -e "$HOME/.config/$f" ] && run rm "$HOME/.config/$f"
+done
 
 # ── 3. pick up the changes in a running session ──────────────────────────────
 if [ "$DRY_RUN" != "1" ] && [ "${RICE_NO_RELOAD:-0}" != "1" ] && [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && have hyprctl; then
   hyprctl reload >/dev/null && ok "reloaded Hyprland"
+  # hypridle only reads its config at startup, so restart it to pick up lock_cmd changes
+  if pkill -x hypridle; then setsid -f hypridle >/dev/null 2>&1 && ok "restarted hypridle"; fi
 fi
