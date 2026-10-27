@@ -4,7 +4,19 @@ set -euo pipefail
 
 monitors=$(hyprctl monitors all -j)
 internal=$(jq -r '[.[] | select(.name | test("^(eDP|LVDS|DSI)"))][0].name // empty' <<<"$monitors")
-external=$(jq -r '[.[] | select(.name | test("^(eDP|LVDS|DSI)") | not)][0].name // empty' <<<"$monitors")
+
+# Hyprland keeps unplugged outputs around, and the NVIDIA driver leaves the
+# connector "connected" with a stale EDID after unplug, falling back to VESA
+# modes (<=1024x768). Only count it if the kernel offers a real mode.
+external=""
+for conn in /sys/class/drm/card*-*; do
+    name=${conn##*/card[0-9]-}
+    [[ $name =~ ^(eDP|LVDS|DSI|Writeback) ]] && continue
+    [[ $(cat "$conn/status" 2>/dev/null) == connected ]] || continue
+    awk -Fx '$1 > 1024 { found = 1 } END { exit !found }' "$conn/modes" 2>/dev/null || continue
+    external=$name
+    break
+done
 
 if [[ -z "$internal" || -z "$external" ]]; then
     notify-send -a Shell "Display" "No external monitor connected"
@@ -21,7 +33,7 @@ choice=$(printf '%s\n' \
     fuzzel --dmenu --prompt "Display: " --lines 6 --width 28) || exit 0
 
 mon() { hyprctl eval "hl.monitor({ output = \"$1\", $2 })" >/dev/null; }
-on='mode = "preferred", scale = "auto", disabled = false'
+on='mode = "preferred", scale = 1, disabled = false'
 
 case "$choice" in
     *"PC screen only")     mon "$internal" "$on, position = \"0x0\""; mon "$external" 'disabled = true' ;;
