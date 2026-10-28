@@ -22,6 +22,22 @@ fi
 # ── 2. bar overrides ─────────────────────────────────────────────────────────
 link_tree "$MOD/home"
 
+# ── 2b. render loop ──────────────────────────────────────────────────────────
+# Qt's threaded render loop sometimes stops drawing the bar for seconds (frozen mid-animation,
+# workspace switches showing up 1-6s late); the basic loop doesn't. A pragma in end-4's
+# shell.qml applies however qs is started (autostart, Ctrl+Super+R, qs-rescue).
+SHELL_QML="$II/shell.qml"
+PRAGMA='//@ pragma Env QSG_RENDER_LOOP=basic'
+if grep -qxF "$PRAGMA" "$SHELL_QML" 2>/dev/null; then
+  skip "basic render loop already set in $SHELL_QML"
+elif [ "$DRY_RUN" = "1" ]; then
+  skip "would set QSG_RENDER_LOOP=basic in $SHELL_QML"
+elif [ -f "$SHELL_QML" ]; then
+  sed -i "1a $PRAGMA" "$SHELL_QML" && ok "basic render loop set in $SHELL_QML"
+else
+  warn "$SHELL_QML not found — can't set the render loop"
+fi
+
 # ── 3. settings (only the keys we care about; the rest of config.json is end-4's) ──
 # enableTerminal off: kitty keeps its own fixed palette, so a wallpaper change mustn't
 # write colors into every open terminal
