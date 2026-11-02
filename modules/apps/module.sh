@@ -12,11 +12,14 @@ APPS=(
   "vscode|VS Code"
   "docker|Docker (runs without sudo)"
   "kubectl|kubectl"
+  "k9s|k9s (Kubernetes TUI)"
   "slack|Slack"
   "obs|OBS Studio"
   "libreoffice|LibreOffice (Writer, Calc, Impress)"
   "nvim|Neovim (with my LazyVim config)"
   "ollama|Ollama (run local LLMs)"
+  "dolphin|Dolphin (file manager, SUPER+E)"
+  "kate|Kate (text editor, SUPER+X)"
 )
 
 if [ "${SKIP_DEPS:-0}" = "1" ]; then
@@ -35,6 +38,9 @@ app_installed() {
   vscode) have code ;;
   docker) have docker ;;
   kubectl) have kubectl ;;
+  k9s) have k9s ;;
+  dolphin) have dolphin ;;
+  kate) have kate ;;
   slack) have slack || flatpak info com.slack.Slack >/dev/null 2>&1 ;;
   obs) have obs || flatpak info com.obsproject.Studio >/dev/null 2>&1 ;;
   libreoffice) have libreoffice || have soffice ;;
@@ -281,6 +287,55 @@ install_ollama() {
   else
     skip "no ollama systemd service (it runs on demand)"
   fi
+}
+
+# k9s — Kubernetes in the terminal. Fedora, Arch and openSUSE all ship it in their main repos.
+install_k9s() {
+  pkg_install k9s
+}
+
+# Dolphin and Kate are KDE apps; outside Plasma they need a few extra pieces to look and work
+# right: Breeze style/colors/icons, the KDE platform theme (dark colors, KDE file dialogs) and an
+# applications.menu so "Open with" lists apps. Hyprland's env.lua turns the platform theme on
+# when it's installed. ~/.config/kdeglobals picks Breeze Dark only if you don't have one yet.
+kde_app_bits() {
+  [ "${KDE_BITS_DONE:-0}" = "1" ] && return 0
+  KDE_BITS_DONE=1
+  case "$PM" in
+  dnf) pkg_install breeze-icon-theme plasma-breeze plasma-integration kde-cli-tools redhat-menus ;;
+  pacman) pkg_install breeze-icons breeze plasma-integration kde-cli-tools archlinux-xdg-menu ;;
+  zypper) pkg_install breeze6-icons breeze6-style plasma6-integration kde-cli-tools6 ;;
+  esac
+  local kg="$HOME/.config/kdeglobals"
+  if [ -e "$kg" ]; then
+    skip "~/.config/kdeglobals present (keeping your KDE colors)"
+  elif [ "$DRY_RUN" = "1" ]; then
+    skip "would write ~/.config/kdeglobals (Breeze Dark, Breeze icons, kitty as terminal)"
+  else
+    mkdir -p "$HOME/.config"
+    printf '%s\n' '[General]' 'ColorScheme=BreezeDark' 'TerminalApplication=kitty' 'TerminalService=kitty.desktop' \
+      '' '[Icons]' 'Theme=breeze-dark' '' '[KDE]' 'widgetStyle=Breeze' >"$kg"
+    ok "~/.config/kdeglobals: Breeze Dark"
+  fi
+  # rebuild KDE's app cache so "Open with" and file associations work right away
+  have kbuildsycoca6 && run kbuildsycoca6 --noincremental >/dev/null 2>&1 || true
+}
+
+# Dolphin — file manager (SUPER+E): archive support (ark), thumbnails for images/videos/PDFs,
+# trash/network places (kio-extras, pulled in by dolphin).
+install_dolphin() {
+  kde_app_bits
+  case "$PM" in
+  dnf) pkg_install dolphin ark ffmpegthumbs kdegraphics-thumbnailers ;;
+  pacman) pkg_install dolphin ark ffmpegthumbs kdegraphics-thumbnailers ;;
+  zypper) pkg_install dolphin ark ffmpegthumbs kdegraphics-thumbnailers ;;
+  esac
+}
+
+# Kate — text editor (SUPER+X)
+install_kate() {
+  kde_app_bits
+  pkg_install kate
 }
 
 # ── install ──────────────────────────────────────────────────────────────────

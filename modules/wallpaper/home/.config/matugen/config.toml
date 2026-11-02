@@ -1,0 +1,27 @@
+# matugen: colors from the wallpaper. wallpaper-set.sh runs it on every wallpaper change
+# (rotation on lock, CTRL+SUPER+T picker); each template below is rendered and its app reloaded.
+
+[config]
+
+[templates.hyprland]
+input_path = '~/.config/matugen/templates/hyprland-colors.lua'
+output_path = '~/.config/hypr/hyprland/colors.lua'
+post_hook = 'hyprctl reload >/dev/null 2>&1 || true'
+
+[templates.hyprlock]
+input_path = '~/.config/matugen/templates/hyprlock-colors.conf'
+output_path = '~/.config/hypr/hyprlock/colors.conf'
+
+[templates.waybar]
+input_path = '~/.config/matugen/templates/waybar-colors.css'
+output_path = '~/.config/waybar/colors.css'
+post_hook = 'pkill -SIGUSR2 -x waybar || true'
+
+[templates.fuzzel]
+input_path = '~/.config/matugen/templates/fuzzel-colors.ini'
+output_path = '~/.config/fuzzel/colors.ini'
+
+[templates.mako]
+input_path = '~/.config/matugen/templates/mako'
+output_path = '~/.config/mako/config'
+post_hook = 'makoctl reload >/dev/null 2>&1 || true'

@@ -15,7 +15,7 @@ end
 require("hyprland.execs")
 require("hyprland.general")
 require("hyprland.rules")
--- Generated from the wallpaper by matugen; missing until the first wallpaper is set
+-- Generated from the wallpaper by matugen (wallpaper module); a fallback copy is installed first
 if is_file_exists(HOME .. "/.config/hypr/hyprland/colors.lua") then
     require("hyprland.colors")
 end
@@ -42,6 +42,3 @@ end
 if is_file_exists(HOME .. "/.config/hypr/monitors.lua") then
     require("monitors")
 end
-
--- Shell overrides --
-require("hyprland.shellOverrides.main")

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # rice_check — verifies the desktop actually picked up rice: Hyprland reads the Lua config with
-# rice's keybinds, kitty/bar/lock files are linked, the shell runs without errors in rice files.
+# rice's keybinds, kitty/bar/launcher/lock files are linked, the bar runs, login and swap are set up.
 # Prints one line per check with a fix hint, returns non-zero if anything failed.
 
 rice_check() {
@@ -62,38 +62,65 @@ rice_check() {
     fi
   fi
 
-  # quickshell (bar + lock)
-  local ii="$HOME/.config/quickshell/ii" f missing=()
-  if [ ! -f "$ii/shell.qml" ]; then
-    fail "end-4's shell isn't installed ($ii)" "./install.sh base"
+  # bar, launcher, notifications, wallpaper colors
+  local f missing=()
+  for f in waybar/config.jsonc waybar/style.css fuzzel/fuzzel.ini matugen/config.toml \
+    hypr/hyprland/scripts/wallpaper-set.sh hypr/hyprland/scripts/window-switcher.sh; do
+    linked "$HOME/.config/$f" || missing+=("$f")
+  done
+  if [ ${#missing[@]} -eq 0 ]; then
+    pass "bar, launcher and wallpaper configs linked"
   else
-    local ref=""
-    [ -f "$ii/.rice-end4-ref" ] && ref="$(cat "$ii/.rice-end4-ref")"
-    if [ "$ref" = "$RICE_END4_REF" ]; then
-      pass "end-4 shell at the version rice is built on ($RICE_END4_REF)"
-    else
-      fail "end-4 shell version unknown or different from $RICE_END4_REF — rice's bar may not load" "./install.sh base"
-    fi
-    for f in modules/ii/bar/BarContent.qml modules/ii/lock/LockSurface.qml services/NepaliDate.qml; do
-      linked "$ii/$f" || missing+=("$f")
-    done
+    fail "not linked: ${missing[*]}" "./install.sh waybar fuzzel wallpaper hyprland"
+  fi
+  missing=()
+  for f in hypr/hyprland/colors.lua hypr/hyprlock/colors.conf waybar/colors.css fuzzel/colors.ini mako/config; do
+    [ -f "$HOME/.config/$f" ] || missing+=("$f")
+  done
+  if [ ${#missing[@]} -eq 0 ]; then
+    pass "color files present (matugen or fallback)"
+  else
+    fail "missing color files: ${missing[*]}" "./install.sh hyprland waybar fuzzel mako wallpaper"
+  fi
+  local tool
+  missing=()
+  for tool in waybar fuzzel mako swaybg matugen hyprlock hypridle cliphist; do
+    have "$tool" || missing+=("$tool")
+  done
+  if [ ${#missing[@]} -eq 0 ]; then
+    pass "desktop tools installed"
+  else
+    fail "not installed: ${missing[*]}" "./install.sh"
+  fi
+  if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+    missing=()
+    for tool in waybar mako swaybg hypridle; do pgrep -x "$tool" >/dev/null || missing+=("$tool"); done
     if [ ${#missing[@]} -eq 0 ]; then
-      pass "bar and lock screen files linked"
+      pass "waybar, mako, swaybg and hypridle running"
     else
-      fail "not linked: ${missing[*]}" "./install.sh quickshell"
+      fail "not running: ${missing[*]}" "SUPER+Escape restarts bar + notifications; or log out and back in"
     fi
   fi
 
-  if pgrep -x qs >/dev/null; then
-    local qerr
-    qerr="$(qs log -c ii 2>/dev/null | grep -E 'ERROR|caused by' | grep -E 'BarContent|ClockWidget|BatteryIndicator|NetworkIndicator|LockSurface|NepaliDate|IllogicalImpulseFamily' | tail -3 || true)"
-    if [ -n "$qerr" ]; then
-      fail "quickshell reports errors in rice files:" "$(echo "$qerr" | sed 's/\x1b\[[0-9;]*m//g' | head -1)"
-    else
-      pass "quickshell running, no errors in rice files"
-    fi
+  # login
+  if grep -qF "rice/hyprland-autostart.sh" "$HOME/.bash_profile" "$HOME/.zprofile" 2>/dev/null; then
+    pass "logging in on tty1 starts Hyprland"
   else
-    skip "quickshell not running — skipping live check (it starts with Hyprland)"
+    fail "tty1 autostart not set up" "./install.sh session"
+  fi
+
+  # swap
+  if swapon --show=NAME --noheadings 2>/dev/null | grep -q '^/dev/zram'; then
+    pass "zram swap active"
+  else
+    fail "no zram swap" "./install.sh swap  (or reboot)"
+  fi
+  if [ "${RICE_SWAPFILE_GB:-20}" = "0" ]; then
+    skip "swapfile disabled (RICE_SWAPFILE_GB=0)"
+  elif swapon --show=NAME --noheadings 2>/dev/null | grep -qx /swap/swapfile; then
+    pass "swapfile /swap/swapfile active"
+  else
+    fail "/swap/swapfile not active" "./install.sh swap"
   fi
 
   echo

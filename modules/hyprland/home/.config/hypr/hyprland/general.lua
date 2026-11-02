@@ -25,14 +25,14 @@ hl.gesture({
     fingers = 3,
     direction = "left",
     action = function()
-        hl.dispatch(hl.dsp.global("quickshell:overviewWorkspacesToggle"))
+        hl.dispatch(hl.dsp.exec_cmd("pkill fuzzel || $HOME/.config/hypr/hyprland/scripts/window-switcher.sh"))
     end
 })
 hl.gesture({
     fingers = 3,
     direction = "right",
     action = function()
-        hl.dispatch(hl.dsp.global("quickshell:overviewWorkspacesToggle"))
+        hl.dispatch(hl.dsp.exec_cmd("pkill fuzzel || $HOME/.config/hypr/hyprland/scripts/window-switcher.sh"))
     end
 })
 
@@ -95,7 +95,7 @@ hl.config({
             enabled = true,
             range = 20,
             offset = {0, 2},
-            render_power = 10,
+            render_power = 4, -- Hyprland 0.57+ allows at most 4
             color = "rgba(00000020)"
 
         },

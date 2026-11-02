@@ -1,0 +1,10 @@
+[Default]
+save_dir=$HOME/Pictures/Screenshots
+save_filename_format=Screenshot_%Y-%m-%d_%H.%M.%S_edited.png
+show_panel=true
+line_size=4
+text_size=18
+text_font=Noto Sans
+paint_mode=arrow
+early_exit=true
+fill_shape=false

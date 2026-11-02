@@ -1,19 +1,36 @@
-# rice
+# rice — `minimal` branch
 
-My dotfiles. One command to get a new laptop to the same desktop and shell I have here.
-Supports **Fedora, Arch and openSUSE** only.
+My dotfiles, light edition: **Hyprland + Waybar + fuzzel + mako**, made for a bare
+**Fedora** install (Everything netinstall "Minimal" or Fedora Server). Same keybinds,
+monitor setup, kitty, zsh and apps as `main`, but no end-4 / quickshell. See [PLAN.md](PLAN.md)
+for why and what replaced what.
 
 ```sh
-git clone git@github.com:parajuliaashutosh/rice.git ~/rice
+sudo dnf install -y git
+git clone -b minimal https://github.com/parajuliaashutosh/rice.git ~/rice
 cd ~/rice && ./install.sh
-exec zsh
+sudo reboot          # then log in on tty1: Hyprland starts by itself
 ```
+
+What you get after login:
+
+| keys | |
+|---|---|
+| tap `SUPER` | app launcher (fuzzel) |
+| `SUPER+Tab` | switch window · `SUPER+/` keybind cheatsheet · `CTRL+ALT+Del` session menu |
+| `SUPER+V` / `SUPER+.` | clipboard history / emoji |
+| `CTRL+SUPER+T` | pick wallpaper (bar, launcher, notifications, borders and lock screen re-color from it) |
+| `SUPER+L` | lock (hyprlock; next wallpaper from the wallhaven list on every lock) |
+| `SUPER+Escape` | unstick: close launcher, restart bar + notifications |
+
+Everything else (workspaces, windows, media, screenshots, `SUPER+P` display picker) is the
+same as `main`.
 
 ## What it does
 
 `install.sh` walks `modules/`, and for each module installs its dependencies
 and symlinks its config into `$HOME`, file by file. If a file already sits where
-a link needs to go (e.g. one end-4's installer put there), it's moved aside to
+a link needs to go it's moved aside to
 `<file>.rice-bak` and replaced with the link — no questions. Re-running is safe:
 anything already installed or linked is skipped, and no extra backups are made.
 
@@ -33,13 +50,17 @@ tick what's already there, and only ask about what's missing.
 
 | module | what it sets up |
 |--------|-----------------|
-| `base` | end-4's illogical-impulse shell (Hyprland, quickshell + deps) at the pinned commit rice's bar/lock are built on. Installs it if missing (Fedora/Arch; end-4 has no openSUSE installer), switches its quickshell config to that commit if it's a different version. Always runs first |
+| `hyprland` | Hyprland (from the `sdegler/hyprland` COPR on Fedora) + hyprlock/hypridle, the portal and polkit agent, all keybinds, SUPER+P display picker, helper scripts (window switcher, session menu, OSD, recorder). Always runs first |
+| `session` | what a bare install lacks: PipeWire audio, portals, GPU drivers, Xwayland, wifi/bluetooth (+ tray applets), fonts incl. JetBrainsMono Nerd Font and Devanagari, dark GTK, and **tty1 login → Hyprland** (no display manager) |
+| `waybar` | the bar: Fedora logo, workspaces, weather (Kathmandu, `RICE_WEATHER_CITY` to change), ↓/↑ net · clock, date, Nepali (BS) date · battery, CPU/RAM/swap, color picker, brightness, volume, tray |
+| `fuzzel` | launcher and every menu; clipboard history via cliphist |
+| `mako` | notifications + the volume/brightness OSD |
+| `wallpaper` | swaybg + matugen: the wallhaven rotation list from `main`, colors from the wallpaper for bar/launcher/notifications/borders/lock |
+| `swap` | same as the laptop: zram (Fedora default) + 20 GB `/swap/swapfile` (pri 10) + swappiness 60; btrfs or xfs/ext4. `RICE_SWAPFILE_GB=8` for another size, `0` for none |
 | `apps` | asks which to install: Brave, Chrome, Firefox, VS Code, Docker (no sudo), kubectl, Slack, OBS, LibreOffice, Neovim (with my LazyVim config, plugins install on first launch). Official packages first. `RICE_APPS="all"` or `RICE_APPS="brave docker"` skips the question |
 | `dev` | asks which to install: Node LTS (nvm), Java (SDKMAN), Python tooling (uv), Go. Only missing ones are offered; `RICE_DEV="all"` skips the question |
-| `quickshell` | rice's bar (workspaces, weather, net speed, centred clock with Nepali date, battery), the lock screen, and a few end-4 settings |
 | `zsh`  | oh-my-zsh, powerlevel10k, autosuggestions, syntax highlighting, my shell config |
 | `zed`  | the Zed editor and its settings (extensions install themselves on first launch) |
-| `hyprland` | Hyprland (from the `sdegler/hyprland` COPR on Fedora) + hyprlock/hypridle config, all keybinds, SUPER+P display picker |
 | `kitty` | kitty config; SUPER+Enter opens a tab in the workspace's kitty (SUPER+Shift+Enter for a new window) |
 | `pentest` *(optional)* | Kali-style lab tooling on Fedora (see [Pentest](#pentest)); `~/labs/{thm,htb,vpn}` |
 
@@ -47,7 +68,7 @@ Optional modules (a `.optional` file in the module dir) are skipped by a bare
 `./install.sh` unless you answer yes to its prompt. Naming one
 (`./install.sh pentest`) installs it directly.
 
-Future: `waybar`, `git` — see [MODULES.md](MODULES.md).
+Future: `git` — see [MODULES.md](MODULES.md).
 
 ## Layout
 
@@ -56,9 +77,11 @@ rice/
 ├── install.sh              entry point
 ├── lib/common.sh           logging, symlinking, package install, COPR, git clone
 └── modules/
-    ├── base/module.sh       end-4's shell, if missing
     ├── apps/module.sh       app picker
-    ├── quickshell/home/.config/quickshell/ii/   bar + lock overrides on top of end-4
+    ├── session/             audio, portals, fonts, tty1 → Hyprland
+    ├── waybar/ fuzzel/ mako/   bar, launcher, notifications (+ fallback colors)
+    ├── wallpaper/           swaybg + matugen templates, wallhaven list
+    ├── swap/module.sh       zram + swapfile
     ├── zsh/
     │   ├── module.sh       install steps for this module
     │   ├── zshrc.local.example
@@ -71,6 +94,7 @@ rice/
     │   └── home/.config/zed/settings.json
     ├── hyprland/
     │   ├── module.sh
+    │   ├── fallback/            colors until matugen runs
     │   └── home/.config/hypr/   (keybinds in hyprland/keybinds.lua)
     ├── kitty/
     │   ├── module.sh
@@ -141,6 +165,7 @@ work-only settings, and anything secret go there. The installer seeds it from
 
 ## Notes
 
-- The p10k prompt needs a Nerd Font — install **MesloLGS NF** and set it in
-  your terminal.
+- The `session` module installs **JetBrainsMono Nerd Font** (kitty, bar, p10k glyphs).
+- Something broken after login? `Ctrl+Alt+F2` gives a plain console (only tty1 starts
+  Hyprland); fix it there, or `touch ~/.config/rice/no-autostart` to stop the autostart.
 - If zsh isn't your login shell: `chsh -s "$(command -v zsh)"`.

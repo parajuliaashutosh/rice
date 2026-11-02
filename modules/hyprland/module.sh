@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
-# hyprland module: Hyprland (Lua config, end-4 illogical-impulse layout) plus
-# hyprlock/hypridle. Keybinds live in .config/hypr/hyprland/keybinds.lua;
+# hyprland module: Hyprland (Lua config, same keybinds/monitor setup as main) plus hyprlock,
+# hypridle, the Hyprland portal and polkit agent. Keybinds live in .config/hypr/hyprland/keybinds.lua;
 # personal overrides go in .config/hypr/custom/*.lua.
+# minimal branch: no quickshell. The bar is waybar, the launcher fuzzel, notifications mako
+# (their own modules); the binds that used quickshell call scripts in hypr/hyprland/scripts.
 
 MOD="${MODULE_DIR:-$RICE_DIR/modules/hyprland}"
 
 # ── 1. hyprland itself ───────────────────────────────────────────────────────
 # Fedora's own repos don't carry a Hyprland new enough for the Lua config; sdegler/hyprland
-# is the COPR end-4 uses. Arch and openSUSE Tumbleweed ship it in their main repos.
+# is the COPR for it. Arch and openSUSE Tumbleweed ship it in their main repos.
 if [ "${SKIP_DEPS:-0}" = "1" ]; then
   skip "dependency install disabled (--no-deps)"
 else
   copr_enable sdegler/hyprland
-  pkg_install hyprland hyprlock hypridle jq fuzzel
+  pkg_install hyprland hyprlock hypridle hyprpicker xdg-desktop-portal-hyprland hyprpolkitagent \
+    jq grim slurp wl-clipboard swappy wf-recorder brightnessctl playerctl libnotify curl
 
   # An older Hyprland silently ignores hyprland.lua and falls back to a legacy config,
   # so none of rice's keybinds load. Upgrade it if needed.
@@ -28,16 +31,21 @@ else
   fi
 fi
 
-# The binds call into quickshell (the "ii" shell), fuzzel, hyprpicker,
-# playerctl, wpctl, etc. Warn rather than install — the shell is its own setup.
-have qs || warn "quickshell (qs) not found — shell keybinds (SUPER, SUPER+Tab, …) won't do anything"
-
 # ── 2. config ────────────────────────────────────────────────────────────────
 link_tree "$MOD/home"
-# colors.lua / hyprlock colors.conf used to be tracked and linked; now matugen writes them
-# in place. Links left over from before point at nothing and break the config, so drop them.
-for f in hypr/hyprland/colors.lua hypr/hyprlock/colors.conf; do
-  [ -L "$HOME/.config/$f" ] && [ ! -e "$HOME/.config/$f" ] && run rm "$HOME/.config/$f"
+
+# colors.lua / hyprlock colors.conf are written by matugen (wallpaper module) in place, so they
+# are real files, not links. Links left over from older rice versions point at nothing, so drop
+# them; then put a fallback copy where none exists so the config loads before any wallpaper.
+for pair in "colors.lua:hypr/hyprland/colors.lua" "hyprlock-colors.conf:hypr/hyprlock/colors.conf"; do
+  src="$MOD/fallback/${pair%%:*}" dst="$HOME/.config/${pair#*:}"
+  [ -L "$dst" ] && [ ! -e "$dst" ] && run rm "$dst"
+  if [ -e "$dst" ]; then
+    skip "${dst/#$HOME/\~} present"
+  else
+    run mkdir -p "$(dirname "$dst")"
+    run cp "$src" "$dst" && ok "${dst/#$HOME/\~} (fallback colors until the first wallpaper)"
+  fi
 done
 
 # ── 3. pick up the changes in a running session ──────────────────────────────

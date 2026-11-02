@@ -4,7 +4,7 @@ Goal: run `./install.sh` on a **bare Fedora (Everything netinstall "Minimal" or 
 minimal)** and end up with a light, good-looking Hyprland desktop, **same keybinds and monitor
 setup as `main`**, but without end-4 / quickshell.
 
-Nothing is built yet — this file is for review first.
+**Status: built** (see "Build notes" at the end for what was verified and how).
 
 ### Decisions (answered 2026-11-02)
 
@@ -164,7 +164,7 @@ Idempotent: an existing `/swap/swapfile` of the right size is left alone.
 - `modules/hyprland`: strip quickshell from `execs.lua`, `keybinds.lua`, `general.lua`
   (gestures), `env.lua` (KDE/ii vars), `rules.lua`, `hypridle.conf`; static colors
 - new modules: `session` (audio, portals, polkit, fonts, login), `waybar`, `fuzzel`, `mako`, `swap`
-- `kitty`: drop the quickshell-generated theme include, use the static palette
+- `kitty`: drop the quickshell-generated theme include; keeps its fixed Tokyo Night colors
 - `lib/check.sh`: check waybar/mako running instead of quickshell; `lib/common.sh`: drop
   `RICE_END4_REF`
 - README section for the minimal branch
@@ -177,3 +177,41 @@ sudo dnf install -y git
 git clone -b minimal https://github.com/parajuliaashutosh/rice ~/rice
 cd ~/rice && ./install.sh          # then reboot, log in on tty1
 ```
+
+---
+
+## 10. Build notes (2026-11-02)
+
+Module run order: `hyprland` first (it enables the COPR), then the rest by name, so `wallpaper`
+runs before `waybar`. Fallback color files are copied in first, then matugen overwrites them
+from the first wallpaper during install.
+
+Things found while building that changed the plan:
+
+- **Waybar must come from the COPR.** In Lua mode Hyprland rejects old-style
+  `dispatch workspace 3`, and that's what Waybar 0.15.0 (Fedora's package) sends, so clicking a
+  workspace would do nothing. The `sdegler/hyprland` COPR build (`0.15.0^2.git1684389`) includes
+  upstream PRs #5013/#5231 (Lua dispatch). The waybar module swaps out Fedora's build if it's
+  already installed.
+- **matugen**: Fedora ships 3.1; the laptop has 4.1. v4 asks which color to use unless
+  `--source-color-index` is given, and v3 doesn't know that flag. `wallpaper-set.sh` checks for it.
+  The config needs a `[config]` table, or matugen refuses it.
+- **Nerd Font**: on the laptop it comes from end-4's COPR. Here the `session` module downloads
+  the official nerd-fonts release into `~/.local/share/fonts`.
+- **Wifi/Bluetooth**: nm-applet and blueman-applet live in the tray, so there are no separate
+  wifi/bluetooth modules in the bar (they would show the same icons twice).
+- **Fuzzel**: `Super_L` is not a cancel key. The SUPER bind already toggles it, and cancel on
+  press + launch on release would reopen it immediately.
+- **Autostart off switch** is a file (`~/.config/rice/no-autostart`), not a variable: `.zprofile`
+  runs before `.zshrc`, so a variable set in `~/.zshrc.local` would come too late.
+- SUPER+A (left sidebar on `main`) is still unbound.
+
+Verified on the laptop (read-only, nothing installed or changed there):
+- `Hyprland --verify-config` on the full config tree in a temporary HOME, with both the fallback
+  and a matugen-generated `colors.lua` (and a planted error to confirm the check catches errors)
+- `fuzzel --check-config` with fallback and generated colors
+- matugen rendering all five templates from a real wallpaper into a temp dir
+- `bash -n` on every script; Nepali date checked against known New Year dates (2081-01-01 =
+  13 Apr 2024, 2082-01-01 = 14 Apr 2025)
+
+Verified in a throwaway VM (Fedora 44 Cloud Base, KVM, user-mode network): see section 11.

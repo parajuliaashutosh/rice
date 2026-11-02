@@ -1,0 +1,66 @@
+/* One floating, rounded, translucent bar. Colors come from colors.css, which matugen rewrites
+   from the wallpaper (wallpaper module); waybar reloads it on change. */
+@import "colors.css";
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Noto Sans", "Noto Sans Devanagari", sans-serif;
+    font-size: 13px;
+    min-height: 0;
+    border: none;
+    border-radius: 0;
+}
+
+window#waybar {
+    background: alpha(@surface, 0.82);
+    color: @on_surface;
+    border-radius: 14px;
+    border: 1px solid alpha(@outline_variant, 0.5);
+}
+
+tooltip {
+    background: @surface_container;
+    color: @on_surface;
+    border: 1px solid @outline_variant;
+    border-radius: 10px;
+}
+
+/* every module is a soft pill */
+#custom-fedora, #workspaces, #custom-weather, #network, #clock, #custom-nepali-date,
+#battery, #system, #custom-colorpicker, #backlight, #wireplumber, #tray {
+    background: alpha(@surface_container_high, 0.75);
+    border-radius: 10px;
+    padding: 0 10px;
+    margin: 4px 0;
+}
+
+#custom-fedora {
+    color: @primary;
+    font-size: 16px;
+    padding: 0 12px 0 10px;
+    margin-left: 4px;
+}
+
+#workspaces { padding: 0 4px; }
+#workspaces button {
+    color: @on_surface_variant;
+    padding: 0 5px;
+    background: transparent;
+}
+#workspaces button.active { color: @primary; }
+#workspaces button.urgent { color: @error; }
+#workspaces button:hover { background: alpha(@primary, 0.15); border-radius: 8px; }
+
+#clock { color: @on_surface; font-weight: bold; }
+#custom-nepali-date { color: @secondary; }
+
+#system { padding: 0; }
+#cpu, #memory { padding: 0 8px; }
+
+#battery.charging, #battery.plugged { color: @primary; }
+#battery.warning:not(.charging) { color: @tertiary; }
+#battery.critical:not(.charging) { color: @error; }
+
+#wireplumber.muted { color: @on_surface_variant; }
+#custom-colorpicker { color: @tertiary; }
+#tray { margin-right: 4px; }
+#tray > .needs-attention { background: alpha(@error, 0.3); }

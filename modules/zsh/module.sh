@@ -36,9 +36,22 @@ else
 fi
 
 # ── 5. default shell ─────────────────────────────────────────────────────────
+# The login shell lives in /etc/passwd ($SHELL is only what this session started with)
 zsh_path="$(command -v zsh || true)"
-if [ -n "$zsh_path" ] && [ "${SHELL:-}" != "$zsh_path" ]; then
-  warn "zsh is not your login shell — run: chsh -s $zsh_path"
+user="$(id -un)"
+login_shell="$(getent passwd "$user" | cut -d: -f7)"
+if [ -z "$zsh_path" ]; then
+  warn "zsh not installed — login shell unchanged"
+elif [ "$login_shell" = "$zsh_path" ]; then
+  skip "zsh is already your login shell"
+else
+  # usermod via sudo: no password prompt per user like chsh, and works when chsh isn't installed
+  run $SUDO usermod -s "$zsh_path" "$user" && ok "login shell set to zsh (from your next login)" ||
+    warn "could not change the login shell — run: chsh -s $zsh_path"
 fi
 
-warn "install a Nerd Font for the p10k prompt glyphs (e.g. MesloLGS NF)"
+if fc-list : family 2>/dev/null | grep -qi "nerd font"; then
+  skip "Nerd Font installed (p10k glyphs)"
+else
+  warn "install a Nerd Font for the p10k prompt glyphs (./install.sh session installs JetBrainsMono Nerd Font)"
+fi

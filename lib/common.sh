@@ -7,9 +7,8 @@ set -euo pipefail
 RICE_DIR="${RICE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 DRY_RUN="${DRY_RUN:-0}"
 
-# rice's bar/lock files are full copies of end-4 files from this commit, and the Lua Hyprland
-# config needs at least this Hyprland. base/hyprland enforce these; lib/check.sh verifies them.
-RICE_END4_REF="d192a25f"
+# The Lua Hyprland config needs at least this Hyprland. The hyprland module enforces it;
+# lib/check.sh verifies it.
 RICE_MIN_HYPRLAND="0.55.0"
 
 # ── output ───────────────────────────────────────────────────────────────────
@@ -173,7 +172,7 @@ link_file() {
 
 # link_tree <module-home-dir> — links every file under it into $HOME at the same relative path.
 # Directories are created as real directories, so rice files sit next to other tools' files
-# (e.g. our bar files inside end-4's quickshell config).
+# (and two modules can put files in the same directory, e.g. hypr/hyprland/scripts).
 link_tree() {
   local root="$1" f rel
   [ -d "$root" ] || return 0

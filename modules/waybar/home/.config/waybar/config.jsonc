@@ -1,0 +1,118 @@
+// Waybar: same layout as the quickshell bar on main.
+//   left:   Fedora logo (opens the launcher) · workspaces · weather · ↓/↑ net speed
+//   center: clock • date • Nepali (BS) date (click opens hamropatro.com)
+//   right:  battery · CPU/RAM/swap · color picker · brightness · volume · tray (wifi + bluetooth applets)
+{
+    "layer": "top",
+    "position": "top",
+    "height": 34,
+    "margin-top": 5,
+    "margin-left": 5,
+    "margin-right": 5,
+    "spacing": 4,
+    "reload_style_on_change": true,
+
+    "modules-left": ["custom/fedora", "hyprland/workspaces", "custom/weather", "network#speed"],
+    "modules-center": ["clock", "custom/nepali-date"],
+    "modules-right": [
+        "battery", "group/system", "custom/colorpicker", "backlight",
+        "wireplumber", "tray"
+    ],
+
+    "custom/fedora": {
+        "format": "",
+        "tooltip-format": "Apps (SUPER)",
+        "on-click": "pkill fuzzel || fuzzel"
+    },
+
+    "hyprland/workspaces": {
+        "format": "{icon}",
+        "format-icons": { "default": "", "active": "", "urgent": "" },
+        "persistent-workspaces": { "*": 5 },
+        "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"r-1\" })'",
+        "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"r+1\" })'"
+    },
+
+    "custom/weather": {
+        "exec": "~/.config/waybar/scripts/weather.sh",
+        "return-type": "json",
+        "interval": 1800,
+        "on-click": "xdg-open https://wttr.in/${RICE_WEATHER_CITY:-Kathmandu}"
+    },
+
+    "network#speed": {
+        "interval": 2,
+        "format": "󰇚 {bandwidthDownBytes}  󰕒 {bandwidthUpBytes}",
+        "format-disconnected": "",
+        "tooltip": false
+    },
+
+    "clock": {
+        "interval": 1,
+        "format": "{:%H:%M  •  %a %d %b}",
+        "tooltip-format": "<tt>{calendar}</tt>",
+        "calendar": { "mode": "month", "weeks-pos": "", "format": { "today": "<b><u>{}</u></b>" } },
+        "on-click": "xdg-open https://www.hamropatro.com"
+    },
+
+    "custom/nepali-date": {
+        "exec": "~/.config/waybar/scripts/nepali-date.sh",
+        "return-type": "json",
+        "interval": 300,
+        "on-click": "xdg-open https://www.hamropatro.com"
+    },
+
+    "battery": {
+        "interval": 30,
+        "states": { "warning": 25, "critical": 12 },
+        "format": "{icon} {capacity}%",
+        "format-charging": "󰂄 {capacity}%",
+        "format-plugged": "󰚥 {capacity}%",
+        "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+        "tooltip-format": "{timeTo}  ({power:.1f} W)"
+    },
+
+    "group/system": {
+        "orientation": "horizontal",
+        "modules": ["cpu", "memory"]
+    },
+    "cpu": {
+        "interval": 3,
+        "format": " {usage}%",
+        "on-click": "kitty -1 btop"
+    },
+    "memory": {
+        "interval": 3,
+        "format": " {percentage}%  󰾴 {swapPercentage}%",
+        "tooltip-format": "RAM {used:0.1f} / {total:0.1f} GiB\nSwap {swapUsed:0.1f} / {swapTotal:0.1f} GiB",
+        "on-click": "kitty -1 btop"
+    },
+
+    "custom/colorpicker": {
+        "format": "",
+        "tooltip-format": "Pick a color (SUPER+SHIFT+C)",
+        "on-click": "hyprpicker -a"
+    },
+
+    "backlight": {
+        "format": "{icon} {percent}%",
+        "format-icons": ["󰃞", "󰃟", "󰃠"],
+        "on-scroll-up": "brightnessctl -q s 5%+",
+        "on-scroll-down": "brightnessctl -q s 5%-"
+    },
+
+    "wireplumber": {
+        "format": "{icon} {volume}%",
+        "format-muted": "󰝟",
+        "format-icons": ["󰕿", "󰖀", "󰕾"],
+        "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+        "on-click-right": "pavucontrol",
+        "scroll-step": 2,
+        "max-volume": 150
+    },
+
+    "tray": {
+        "icon-size": 16,
+        "spacing": 8
+    }
+}

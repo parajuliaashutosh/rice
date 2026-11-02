@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 #   rice — dotfiles bootstrap for Fedora, Arch and openSUSE
+#   (minimal branch: Hyprland + waybar + fuzzel + mako, made for a bare Fedora install)
 #
 #   Usage:
 #     ./install.sh                 install every module in modules/ (asks about
@@ -34,7 +35,7 @@ list_modules() {
 # ./install.sh unless you say yes at the prompt; naming one always installs it.
 is_optional() { [ -f "$MODULES_DIR/$1/.optional" ]; }
 
-usage() { sed -n '2,20p' "$0" | sed 's/^#//;s/^ //'; }
+usage() { sed -n '2,19p' "$0" | sed 's/^#//;s/^ //'; }
 
 # optional_needed <module> — 0 if the module still has something to install. A module can ship
 # a status.sh defining module_status (prints what it installs; returns 0 when all present).
@@ -93,10 +94,12 @@ if [ ${#targets[@]} -eq 0 ]; then
 fi
 [ ${#targets[@]} -eq 0 ] && die "no modules found in $MODULES_DIR"
 
-# base (end-4's shell) goes first: the hyprland, kitty and quickshell modules layer on top of it
+# hyprland goes first: it enables the COPR that waybar and the Hyprland tools come from.
+# The rest run in name order (the fallback color files never overwrite matugen's, so the
+# order of wallpaper vs waybar/fuzzel/mako doesn't matter).
 ordered=()
-for m in "${targets[@]}"; do [ "$m" = "base" ] && ordered+=("$m"); done
-for m in "${targets[@]}"; do [ "$m" != "base" ] && ordered+=("$m"); done
+for m in "${targets[@]}"; do [ "$m" = "hyprland" ] && ordered+=("$m"); done
+for m in "${targets[@]}"; do [ "$m" != "hyprland" ] && ordered+=("$m"); done
 targets=("${ordered[@]}")
 
 case "$RICE_OS" in
