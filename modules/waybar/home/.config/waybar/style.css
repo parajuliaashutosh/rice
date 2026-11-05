@@ -50,29 +50,14 @@ tooltip {
     border-radius: 9px;
     border: 1px solid transparent;
 }
-#workspaces button.empty {
-    font-size: 1px;
-    min-width: 6px;
-    min-height: 6px;
-    padding: 0;
-    margin: 9px 6px;
-    border-radius: 6px;
-    background: alpha(@on_surface_variant, 0.35);
-}
+#workspaces button.empty { color: alpha(@on_surface_variant, 0.55); }
 #workspaces button.active {
     color: @primary;
     background: alpha(@primary, 0.18);
     border-color: alpha(@primary, 0.7);
 }
-#workspaces button.empty label { font-size: 1px; min-height: 0; }
-#workspaces button.empty.active {
-    min-width: 18px;
-    margin: 9px 3px;
-    background: @primary;
-}
 #workspaces button.urgent { color: @error; border-color: alpha(@error, 0.7); }
 #workspaces button:hover { background: alpha(@primary, 0.15); }
-#workspaces button.empty:hover { background: alpha(@primary, 0.6); }
 
 #clock { color: @on_surface; font-weight: bold; }
 #custom-nepali-date { color: @secondary; }
