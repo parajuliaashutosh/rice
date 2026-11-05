@@ -21,11 +21,11 @@ progress-color=over #{{colors.primary.default.hex_stripped}}44
 border-color=#{{colors.error.default.hex_stripped}}
 default-timeout=0
 
-# volume/brightness OSD (osd.sh): small, centered at the bottom, no timeout stacking
+# volume/brightness OSD (osd.sh): small, centered at the top, no timeout stacking
 [app-name=osd]
-anchor=bottom-center
+anchor=top-center
 width=260
 height=70
-margin=0,0,80,0
+margin=12,0,0,0
 default-timeout=1200
 group-by=app-name
