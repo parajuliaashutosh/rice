@@ -14,7 +14,7 @@ STATE="${XDG_STATE_HOME:-$HOME/.local/state}/rice/wallpaper"
 if [ "${SKIP_DEPS:-0}" = "1" ]; then
   skip "dependency install disabled (--no-deps)"
 else
-  pkg_install swaybg matugen curl jq xdg-user-dirs findutils
+  pkg_install swaybg matugen curl jq xdg-user-dirs findutils rofi
 fi
 
 link_tree "$MOD/home"
