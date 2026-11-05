@@ -24,6 +24,30 @@ export RICE_DIR
 # shellcheck source=lib/common.sh
 . "$RICE_DIR/lib/common.sh"
 
+# ── sudo handling ────────────────────────────────────────────────────────────
+# `sudo ./install.sh` would make $HOME=/root, so every config would land in root's home. Instead,
+# re-run as the user who typed sudo: configs go to their home, and the modules still use sudo
+# for package installs (the password just typed is still cached, and kept alive below).
+if [ "$(id -u)" -eq 0 ]; then
+  if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "root" ]; then
+    user_uid="$(id -u "$SUDO_USER")"
+    info "started with sudo — configs go to $SUDO_USER's home, packages still install as root"
+    exec sudo -u "$SUDO_USER" -H env \
+      RICE_FROM_SUDO=1 DRY_RUN="$DRY_RUN" \
+      XDG_RUNTIME_DIR="/run/user/$user_uid" \
+      "$RICE_DIR/install.sh" "$@"
+  fi
+  die "run this as your normal user (or with sudo from it), not logged in as root"
+fi
+
+# Keep sudo's cached password fresh during a long install (end-4's installer alone takes a while),
+# so package steps don't stop to ask again. Only refreshes an existing login — never prompts.
+if [ "$DRY_RUN" != "1" ] && sudo -n true 2>/dev/null; then
+  (while kill -0 "$$" 2>/dev/null; do sudo -n -v 2>/dev/null; sleep 50; done) &
+  RICE_SUDO_KEEPALIVE=$!
+  trap 'kill "$RICE_SUDO_KEEPALIVE" 2>/dev/null || true' EXIT
+fi
+
 MODULES_DIR="$RICE_DIR/modules"
 SKIP_DEPS=0
 
