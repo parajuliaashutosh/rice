@@ -19,6 +19,12 @@ if [[ -d "$HOME/.bun" ]]; then
   [[ -s "$BUN_INSTALL/_bun" ]] && source "$BUN_INSTALL/_bun"   # completions
 fi
 
+# ── go ───────────────────────────────────────────────────────────────────────
+# binaries from `go install` (gopls, golangci-lint, …) land in $(go env GOPATH)/bin = ~/go/bin
+if (( $+commands[go] )); then
+  path_prepend "${GOPATH:-$HOME/go}/bin"
+fi
+
 # ── railway ──────────────────────────────────────────────────────────────────
 [[ -s "$HOME/.railway/env" ]] && source "$HOME/.railway/env"
 
