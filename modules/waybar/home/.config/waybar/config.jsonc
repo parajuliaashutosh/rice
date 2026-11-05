@@ -20,15 +20,32 @@
     ],
 
     "custom/fedora": {
-        "format": "",
+        "format": "",
         "tooltip-format": "Apps (SUPER)",
         "on-click": "pkill fuzzel || fuzzel"
     },
 
     "hyprland/workspaces": {
-        "format": "{icon}",
-        "format-icons": { "default": "", "active": "", "urgent": "" },
-        "persistent-workspaces": { "*": 5 },
+        "format": "{windows}",
+        "format-window-separator": " ",
+        "window-rewrite-default": "",
+        "window-rewrite": {
+            "class<kitty>": "",
+            "class<brave-browser.*>": "󰖟",
+            "class<firefox|zen.*>": "󰈹",
+            "class<google-chrome.*>": "",
+            "class<code|code-oss|Code>": "󰨞",
+            "class<dev.zed.Zed>": "󰅩",
+            "class<Slack>": "󰒱",
+            "class<org.kde.dolphin|thunar|org.gnome.Nautilus>": "󰉋",
+            "class<org.kde.kate>": "󰏫",
+            "class<com.obsproject.Studio>": "󰕧",
+            "class<libreoffice.*>": "󰈙",
+            "class<org.pulseaudio.pavucontrol>": "󰕾",
+            "class<jetbrains-.*>": "󰅩",
+            "title<.*nvim.*>": ""
+        },
+        "persistent-workspaces": { "*": 10 },
         "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"r-1\" })'",
         "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"r+1\" })'"
     },

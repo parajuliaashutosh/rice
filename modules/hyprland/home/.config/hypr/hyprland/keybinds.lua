@@ -46,8 +46,7 @@ hl.bind("CTRL + SUPER + R", hl.dsp.exec_cmd(hyprScripts .. "/restart-shell.sh"),
 
 --##! Utilities
 --# Screenshot, Record, OCR, Color picker, Clipboard history
-hl.bind("SUPER + V", hl.dsp.exec_cmd(
-        "pkill fuzzel || cliphist list | fuzzel --match-mode fzf --dmenu --prompt 'Clipboard: ' | cliphist decode | wl-copy"),
+hl.bind("SUPER + V", hl.dsp.exec_cmd(hyprScripts .. "/clipboard.sh"),
     { description = "Utilities: Clipboard history >> clipboard" })
 hl.bind("SUPER + Period", hl.dsp.exec_cmd("pkill fuzzel || " .. hyprScripts .. "/fuzzel-emoji.sh copy"),
     { description = "Utilities: Emoji >> clipboard" })

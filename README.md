@@ -18,7 +18,7 @@ What you get after login:
 |---|---|
 | tap `SUPER` | app launcher (fuzzel) |
 | `SUPER+Tab` | switch window · `SUPER+/` keybind cheatsheet · `CTRL+ALT+Del` session menu |
-| `SUPER+V` / `SUPER+.` | clipboard history / emoji |
+| `SUPER+V` / `SUPER+.` | clipboard history (copied images show as thumbnails) / emoji |
 | `CTRL+SUPER+T` | pick wallpaper (bar, launcher, notifications, borders and lock screen re-color from it) |
 | `SUPER+L` | lock (hyprlock; next wallpaper from the wallhaven list on every lock) |
 | `SUPER+Escape` | unstick: close launcher, restart bar + notifications |
@@ -52,7 +52,7 @@ tick what's already there, and only ask about what's missing.
 |--------|-----------------|
 | `hyprland` | Hyprland (from the `sdegler/hyprland` COPR on Fedora) + hyprlock/hypridle, the portal and polkit agent, all keybinds, SUPER+P display picker, helper scripts (window switcher, session menu, OSD, recorder). Always runs first |
 | `session` | what a bare install lacks: PipeWire audio, portals, GPU drivers, Xwayland, wifi/bluetooth (+ tray applets), fonts incl. JetBrainsMono Nerd Font and Devanagari, dark GTK, and **tty1 login → Hyprland** (no display manager) |
-| `waybar` | the bar: Fedora logo, workspaces, weather (Kathmandu, `RICE_WEATHER_CITY` to change), ↓/↑ net · clock, date, Nepali (BS) date · battery, CPU/RAM/swap, color picker, brightness, volume, tray |
+| `waybar` | the bar: Fedora logo, workspaces (icons of the apps on each, current one ringed, empty ones as dots), weather (Kathmandu, `RICE_WEATHER_CITY` to change), ↓/↑ net · clock, date, Nepali (BS) date · battery, CPU/RAM/swap, color picker, brightness, volume, tray |
 | `fuzzel` | launcher and every menu; clipboard history via cliphist |
 | `mako` | notifications + the volume/brightness OSD |
 | `wallpaper` | swaybg + matugen: the wallhaven rotation list from `main`, colors from the wallpaper for bar/launcher/notifications/borders/lock |

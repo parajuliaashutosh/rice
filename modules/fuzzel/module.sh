@@ -9,7 +9,7 @@ MOD="${MODULE_DIR:-$RICE_DIR/modules/fuzzel}"
 if [ "${SKIP_DEPS:-0}" = "1" ]; then
   skip "dependency install disabled (--no-deps)"
 else
-  pkg_install fuzzel cliphist wl-clipboard adwaita-icon-theme
+  pkg_install fuzzel cliphist wl-clipboard adwaita-icon-theme imv
 fi
 
 link_tree "$MOD/home"

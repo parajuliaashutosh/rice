@@ -111,3 +111,6 @@ hl.layer_rule({ match = { namespace = "notifications" }, animation = "slide righ
 
 -- Launchers need to be FAST
 hl.layer_rule({ match = { namespace = "gtk4-layer-shell" }, no_anim = true})
+
+hl.window_rule({match = {class = "^(imv|rice-clip-preview)$" }, float = true})
+hl.window_rule({match = {class = "^(imv|rice-clip-preview)$" }, center = true})
