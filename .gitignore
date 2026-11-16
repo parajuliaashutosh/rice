@@ -8,3 +8,6 @@
 # Regenerated from the wallpaper on every change (wallpaper-rotate.sh, the picker)
 modules/hyprland/home/.config/hypr/hyprland/colors.lua
 modules/hyprland/home/.config/hypr/hyprlock/colors.conf
+
+# private zsh aliases (work contexts etc.)
+modules/zsh/home/.config/zsh/conf.d/90-private.zsh
