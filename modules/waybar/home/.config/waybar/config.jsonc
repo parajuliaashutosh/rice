@@ -36,7 +36,7 @@
             "class<google-chrome.*>": " ",
             "class<code|code-oss|Code>": " 󰨞",
             "class<dev.zed.Zed>": " 󰅩",
-            "class<Slack>": " 󰒱",
+            "class<[Ss]lack|com\\.slack\\.Slack>": " 󰒱",
             "class<org.kde.dolphin|thunar|org.gnome.Nautilus>": " 󰉋",
             "class<org.kde.kate>": " 󰏫",
             "class<com.obsproject.Studio>": " 󰕧",
