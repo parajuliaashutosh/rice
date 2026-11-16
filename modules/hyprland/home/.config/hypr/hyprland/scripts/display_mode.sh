@@ -36,10 +36,17 @@ mon() { hyprctl eval "hl.monitor({ output = \"$1\", $2 })" >/dev/null; }
 on='mode = "preferred", scale = 1, disabled = false'
 
 case "$choice" in
-    *"PC screen only")     mon "$internal" "$on, position = \"0x0\""; mon "$external" 'disabled = true' ;;
-    *"Duplicate")          mon "$internal" "$on, position = \"0x0\""; mon "$external" "$on, position = \"auto\", mirror = \"$internal\"" ;;
-    *"Extend right")       mon "$internal" "$on, position = \"0x0\""; mon "$external" "$on, position = \"auto-right\"" ;;
-    *"Extend left")        mon "$internal" "$on, position = \"0x0\""; mon "$external" "$on, position = \"auto-left\"" ;;
-    *"Extend top")         mon "$internal" "$on, position = \"0x0\""; mon "$external" "$on, position = \"auto-up\"" ;;
-    *"Second screen only") mon "$external" "$on, position = \"0x0\""; mon "$internal" 'disabled = true' ;;
+    *"PC screen only")     mode=pc-only;      mon "$internal" "$on, position = \"0x0\""; mon "$external" 'disabled = true' ;;
+    *"Duplicate")          mode=duplicate;    mon "$internal" "$on, position = \"0x0\""; mon "$external" "$on, position = \"auto\", mirror = \"$internal\"" ;;
+    *"Extend right")       mode=extend-right; mon "$internal" "$on, position = \"0x0\""; mon "$external" "$on, position = \"auto-right\"" ;;
+    *"Extend left")        mode=extend-left;  mon "$internal" "$on, position = \"0x0\""; mon "$external" "$on, position = \"auto-left\"" ;;
+    *"Extend top")         mode=extend-top;   mon "$internal" "$on, position = \"0x0\""; mon "$external" "$on, position = \"auto-up\"" ;;
+    *"Second screen only") mode=second-only;  mon "$external" "$on, position = \"0x0\""; mon "$internal" 'disabled = true' ;;
+    *) exit 0 ;;
 esac
+
+# Remember the choice: general.lua re-applies it on every config load, so a reload (matugen runs
+# one when the wallpaper changes on lock) or a re-login doesn't put the screens back to default.
+state="${XDG_STATE_HOME:-$HOME/.local/state}/hypr"
+mkdir -p "$state"
+printf '%s %s %s\n' "$mode" "$internal" "$external" >"$state/display-mode"

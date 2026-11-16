@@ -6,6 +6,56 @@ hl.monitor({
     scale = 1
 })
 
+-- SUPER+P layout, saved by scripts/display_mode.sh as "<mode> <internal> <external>".
+-- Re-applied on every config load, so a reload (matugen runs one when the wallpaper changes
+-- on lock) or a re-login keeps the layout you picked.
+do
+    local path = (os.getenv("XDG_STATE_HOME") or (HOME .. "/.local/state")) .. "/hypr/display-mode"
+    local f = io.open(path, "r")
+    local line = f and f:read("*l") or ""
+    if f then f:close() end
+    local mode, internal, external = line:match("^(%S+)%s+(%S+)%s+(%S+)")
+
+    -- Same test as display_mode.sh: connected, with a real mode (stale NVIDIA connectors only
+    -- offer VESA modes <= 1024 wide). Without the external screen nothing is applied, so
+    -- "second screen only" can never leave the laptop with no screen.
+    local function plugged(name)
+        for i = 0, 9 do
+            local dir = "/sys/class/drm/card" .. i .. "-" .. name
+            local s = io.open(dir .. "/status", "r")
+            if s then
+                local status = s:read("*l")
+                s:close()
+                local m = status == "connected" and io.open(dir .. "/modes", "r")
+                if m then
+                    local modes = m:read("*a") or ""
+                    m:close()
+                    for w in modes:gmatch("(%d+)x%d+") do
+                        if tonumber(w) > 1024 then return true end
+                    end
+                end
+            end
+        end
+        return false
+    end
+
+    local function on(output, position, mirror)
+        hl.monitor({ output = output, mode = "preferred", scale = 1, disabled = false,
+                     position = position, mirror = mirror })
+    end
+    local function off(output) hl.monitor({ output = output, disabled = true }) end
+
+    if mode and plugged(external) then
+        if mode == "pc-only" then on(internal, "0x0"); off(external)
+        elseif mode == "duplicate" then on(internal, "0x0"); on(external, "auto", internal)
+        elseif mode == "extend-right" then on(internal, "0x0"); on(external, "auto-right")
+        elseif mode == "extend-left" then on(internal, "0x0"); on(external, "auto-left")
+        elseif mode == "extend-top" then on(internal, "0x0"); on(external, "auto-up")
+        elseif mode == "second-only" then on(external, "0x0"); off(internal)
+        end
+    end
+end
+
 hl.gesture({
     fingers = 3,
     direction = "vertical",
@@ -38,7 +88,7 @@ hl.gesture({
 
 hl.config({
     gestures = {
-        workspace_swipe_distance = 700,
+        workspace_swipe_distance = 300, -- short swipe switches (commits after 20% of this)
         workspace_swipe_cancel_ratio = 0.2,
         workspace_swipe_min_speed_to_force = 5,
         workspace_swipe_direction_lock = true,
