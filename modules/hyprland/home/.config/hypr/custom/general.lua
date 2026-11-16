@@ -1,4 +1,9 @@
-
+-- ThinkPad touchpad: a bit faster than libinput's default (range -1..1, 0 = default).
+-- Only this device, so external mice keep their own speed. Name from: hyprctl devices
+hl.device({
+    name = "syna8020:00-06cb:ce5c-touchpad",
+    sensitivity = 0.3
+})
 
 -- Vertical workspace switch animation (overrides hyprland/general.lua).
 -- Plain slide like end-4's default: a crossfade lingers visibly through the curve's long tail
