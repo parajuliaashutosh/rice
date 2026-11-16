@@ -25,6 +25,20 @@ clone_or_update https://github.com/zsh-users/zsh-syntax-highlighting.git \
   "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" --depth=1
 
 # ── 4. config files ──────────────────────────────────────────────────────────
+# Private aliases: a gitignored conf.d fragment, created before link_tree so it gets linked too.
+private="$MOD/home/.config/zsh/conf.d/90-private.zsh"
+if [ ! -e "$private" ]; then
+  [ "${DRY_RUN:-0}" = "1" ] || cat >"$private" <<'EOF'
+# Private aliases, machine-local. Gitignored, so nothing here is ever committed.
+# Loaded with the rest of conf.d; run `reload` after editing.
+
+# alias work='cd "$HOME/code/work"'
+EOF
+  ok "created ~/.config/zsh/conf.d/90-private.zsh: put your custom aliases there (not committed)"
+else
+  skip "90-private.zsh already exists (your custom aliases)"
+fi
+
 link_tree "$MOD/home"
 
 # Machine-specific overrides live outside the repo and are sourced last.
