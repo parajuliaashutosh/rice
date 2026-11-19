@@ -56,6 +56,11 @@ tooltip {
     background: alpha(@primary, 0.18);
     border-color: alpha(@primary, 0.7);
 }
+/* shown on another monitor but not focused: faint secondary fill */
+#workspaces button.visible:not(.active) {
+    color: @secondary;
+    background: alpha(@secondary, 0.14);
+}
 #workspaces button.urgent { color: @error; border-color: alpha(@error, 0.7); }
 #workspaces button:hover { background: alpha(@primary, 0.15); }
 
